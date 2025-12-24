@@ -15,8 +15,10 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		NewFormatCmd(),
 		NewCreateAccountCmd(),
 		NewCreateTransferCmd(),
+		NewLookupAccountCmd(),
 	)
 
 	return cmd

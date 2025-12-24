@@ -1,0 +1,17 @@
+
+tiger beetle often uses unsigned 128 bit integers for both ids and amounts
+This is not possible for both use cases for the following reasons.
+
+- cannot be used for amounts since sqlite converts very large integers into floats.
+because of the lack of precision of floats this is not ideal for monetary operations.
+
+- for the id, ULIDs are highly recommended, but a ULID converted into an int requires unsigned 128 bit integer.
+- again, sqllite will convert this very large numbers into floats.
+
+
+solution
+- for amounts use integer type, the constraint will be largest signed 64 bit int.
+- for ids, use a blob or text.
+
+
+- Using STRICT on the table will ensure that integer fields are never stored as Floats if they get too large.
