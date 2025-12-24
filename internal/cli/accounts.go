@@ -38,6 +38,11 @@ func NewCreateAccountCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&params.DebitsMustNotExceedCredits, "debits-must-not-exceed-credits", false, "debits must not exceed credits")
 	cmd.Flags().BoolVar(&params.CreditsMustNotExceedDebits, "credits-must-not-exceed-debits", false, "credits must not exceed debits")
 
+	cmd.MarkFlagRequired("id")
+	cmd.MarkFlagRequired("ledger")
+	cmd.MarkFlagRequired("code")
+	cmd.MarkFlagsMutuallyExclusive("debits-must-not-exceed-credits", "credits-must-not-exceed-debits")
+
 	return cmd
 }
 
@@ -64,21 +69,23 @@ func NewLookupAccountCmd() *cobra.Command {
 			}
 
 			fmt.Printf(
-				"%7s %14s %15s %7s %5s\n",
+				"%15s %15s %15s %7s %5s %20s\n",
 				"ID",
 				"Debits Posted",
 				"Credits Posted",
 				"Ledger",
 				"Code",
+				"Timestamp",
 			)
-			fmt.Println(strings.Repeat("-", 55))
+			fmt.Println(strings.Repeat("-", 85))
 			fmt.Printf(
-				"%7d %14d %15d %7d %5d\n",
+				"%15d %15d %15d %7d %5d %20d\n",
 				account.Id,
 				account.DebitsPosted,
 				account.CreditsPosted,
 				account.Ledger,
 				account.Code,
+				account.Timestamp,
 			)
 			return nil
 		},

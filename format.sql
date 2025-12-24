@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     credits_must_not_exceed_debits INTEGER NOT NULL DEFAULT 0 CHECK (credits_must_not_exceed_debits IN (0,1)),
     timestamp INTEGER NOT NULL DEFAULT (unix_nano()) CHECK (timestamp >= 0),
     CONSTRAINT id_must_not_be_zero CHECK (id != '0'),
+    CONSTRAINT id_must_not_be_int_max CHECK (id != '340282366920938463463374607431768211455'),
     CONSTRAINT flags_are_mutually_exclusive CHECK (
         NOT (debits_must_not_exceed_credits AND credits_must_not_exceed_debits)
     )
@@ -23,6 +24,19 @@ CREATE TABLE IF NOT EXISTS accounts (
         NOT credits_must_not_exceed_debits OR credits_posted <= debits_posted
     )
 ) STRICT, WITHOUT ROWID;
+
+
+CREATE TRIGGER IF NOT EXISTS before_create_account BEFORE INSERT ON accounts
+BEGIN
+    SELECT
+    CASE
+        WHEN NEW.debits_posted != '0'
+            THEN RAISE(ABORT, "debits_posted_must_be_zero")
+        WHEN NEW.credits_posted != '0'
+            THEN RAISE(ABORT, "credits_posted_must_be_zero")
+    END;
+END;
+
 
 CREATE TABLE IF NOT EXISTS transfers (
     id TEXT PRIMARY KEY CHECK (is_uint128(id)),
@@ -37,7 +51,8 @@ CREATE TABLE IF NOT EXISTS transfers (
     timestamp INTEGER NOT NULL DEFAULT (unix_nano()) CHECK (timestamp >= 0),
     FOREIGN KEY (debit_account_id) REFERENCES accounts(id),
     FOREIGN KEY (credit_account_id) REFERENCES accounts(id),
-    CONSTRAINT id_must_not_be_zero CHECK (id != 0),
+    CONSTRAINT id_must_not_be_zero CHECK (id != '0'),
+    CONSTRAINT id_must_not_be_int_max CHECK (id != '340282366920938463463374607431768211455'),
     CONSTRAINT debit_account_id_must_not_be_zero CHECK (debit_account_id != 0),
     CONSTRAINT credit_account_id_must_not_be_zero CHECK (credit_account_id != 0),
     CONSTRAINT accounts_must_be_different CHECK (debit_account_id != credit_account_id),

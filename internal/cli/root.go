@@ -17,8 +17,9 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(
 		NewFormatCmd(),
 		NewCreateAccountCmd(),
-		NewCreateTransferCmd(),
 		NewLookupAccountCmd(),
+		NewCreateTransferCmd(),
+		NewLookupTransferCmd(),
 	)
 
 	return cmd
