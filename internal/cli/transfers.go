@@ -66,7 +66,7 @@ func NewLookupTransferCmd() *cobra.Command {
 			transfer, err := client.LookupTransfer(id)
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
-					return errors.New("account not found")
+					return errors.New("transfer not found")
 				}
 				return err
 			}

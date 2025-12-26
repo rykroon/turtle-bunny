@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/rykroon/turtlebunny"
+	"github.com/rykroon/turtlebunny/internal/uint128x"
 	"github.com/spf13/cobra"
+	"lukechampine.com/uint128"
 )
 
 func NewCreateAccountCmd() *cobra.Command {
@@ -26,13 +28,13 @@ func NewCreateAccountCmd() *cobra.Command {
 			defer client.Close()
 			err = client.CreateAccount(params)
 			if err != nil {
-				return err
+				return fmt.Errorf("fuck: %w", err)
 			}
 			return nil
 		},
 	}
 
-	cmd.Flags().Uint64VarP(&params.Id, "id", "i", 0, "id")
+	uint128x.Uint128VarP(cmd.Flags(), &params.Id, "id", "i", uint128.Zero, "id")
 	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
 	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
 	cmd.Flags().BoolVar(&params.DebitsMustNotExceedCredits, "debits-must-not-exceed-credits", false, "debits must not exceed credits")
@@ -47,7 +49,7 @@ func NewCreateAccountCmd() *cobra.Command {
 }
 
 func NewLookupAccountCmd() *cobra.Command {
-	var id uint64 = 0
+	id := uint128.Zero
 
 	cmd := &cobra.Command{
 		Use:   "lookup-account",
@@ -79,10 +81,10 @@ func NewLookupAccountCmd() *cobra.Command {
 			)
 			fmt.Println(strings.Repeat("-", 85))
 			fmt.Printf(
-				"%15d %15d %15d %7d %5d %20d\n",
-				account.Id,
-				account.DebitsPosted,
-				account.CreditsPosted,
+				"%15s %15s %15s %7d %5d %20d\n",
+				account.Id.String(),
+				account.DebitsPosted.String(),
+				account.CreditsPosted.String(),
 				account.Ledger,
 				account.Code,
 				account.Timestamp,
@@ -91,7 +93,7 @@ func NewLookupAccountCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Uint64VarP(&id, "id", "i", 0, "id")
+	uint128x.Uint128VarP(cmd.Flags(), &id, "id", "i", uint128.Zero, "id")
 	cmd.MarkFlagRequired("id")
 	return cmd
 }

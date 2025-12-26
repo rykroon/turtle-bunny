@@ -1,7 +1,12 @@
 package turtlebunny
 
+import (
+	"github.com/rykroon/turtlebunny/internal/uint128x"
+	"lukechampine.com/uint128"
+)
+
 type CreateAccountParams struct {
-	Id                         uint64
+	Id                         uint128.Uint128
 	Ledger                     uint32
 	Code                       uint16
 	DebitsMustNotExceedCredits bool
@@ -14,7 +19,7 @@ func (c *Client) CreateAccount(params *CreateAccountParams) error {
 		(id, ledger, code, debits_must_not_exceed_credits, credits_must_not_exceed_debits)
 		VALUES
 		(?, ?, ?, ?, ?)
-	`, params.Id, params.Ledger, params.Code, params.DebitsMustNotExceedCredits, params.CreditsMustNotExceedDebits)
+	`, params.Id.String(), params.Ledger, params.Code, params.DebitsMustNotExceedCredits, params.CreditsMustNotExceedDebits)
 
 	if err != nil {
 		return err
@@ -23,9 +28,9 @@ func (c *Client) CreateAccount(params *CreateAccountParams) error {
 }
 
 type Account struct {
-	Id                         uint64
-	DebitsPosted               uint64
-	CreditsPosted              uint64
+	Id                         uint128.Uint128
+	DebitsPosted               uint128.Uint128
+	CreditsPosted              uint128.Uint128
 	Ledger                     uint32
 	Code                       uint16
 	DebitsMustNotExceedCredits bool
@@ -33,7 +38,7 @@ type Account struct {
 	Timestamp                  uint64
 }
 
-func (c *Client) LookupAccount(id uint64) (*Account, error) {
+func (c *Client) LookupAccount(id uint128.Uint128) (*Account, error) {
 	account := &Account{}
 	err := c.db.QueryRow(`
 		SELECT
@@ -47,10 +52,10 @@ func (c *Client) LookupAccount(id uint64) (*Account, error) {
 			timestamp
 		FROM accounts
 		WHERE id = ?
-	`, id).Scan(
-		&account.Id,
-		&account.DebitsPosted,
-		&account.CreditsPosted,
+	`, id.String()).Scan(
+		uint128x.NewScannableUint128(&account.Id),
+		uint128x.NewScannableUint128(&account.DebitsPosted),
+		uint128x.NewScannableUint128(&account.CreditsPosted),
 		&account.Ledger,
 		&account.Code,
 		&account.DebitsMustNotExceedCredits,
