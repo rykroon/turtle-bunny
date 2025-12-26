@@ -1,35 +1,15 @@
 CREATE TABLE IF NOT EXISTS accounts (
-    id TEXT PRIMARY KEY CHECK (
-        id REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(id, '0') >= 0 AND
-        decimal_cmp(id, '340282366920938463463374607431768211455') <= 0
-    ),
-    debits_posted TEXT NOT NULL DEFAULT 0 CHECK (
-        debits_posted REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(debits_posted, '0') >= 0 AND
-        decimal_cmp(debits_posted, '340282366920938463463374607431768211455') <= 0
-    ),
-    credits_posted TEXT NOT NULL DEFAULT 0 CHECK (
-        credits_posted REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(credits_posted, '0') >= 0 AND
-        decimal_cmp(credits_posted, '340282366920938463463374607431768211455') <= 0
-    ),
-    user_data_128 TEXT NOT NULL DEFAULT 0 CHECK (
-        user_data_128 REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(user_data_128, '0') >= 0 AND
-        decimal_cmp(user_data_128, '340282366920938463463374607431768211455') <= 0
-    ),
-    user_data_64 TEXT NOT NULL DEFAULT 0 CHECK (
-        user_data_64 REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(user_data_64, '0') >= 0 AND
-        decimal_cmp(user_data_64, '18446744073709551615') <= 0
-    ),
+    id TEXT PRIMARY KEY CHECK (is_uint128(id)),
+    debits_posted TEXT NOT NULL DEFAULT 0 CHECK (is_uint128(debits_posted)),
+    credits_posted TEXT NOT NULL DEFAULT 0 CHECK (is_uint128(credits_posted)),
+    user_data_128 TEXT NOT NULL DEFAULT 0 CHECK (is_uint128(user_data_128)),
+    user_data_64 TEXT NOT NULL DEFAULT 0 CHECK (is_uint64(user_data_64)),
     user_data_32 INTEGER NOT NULL DEFAULT 0 CHECK (user_data_32 BETWEEN 0 AND 4294967295),
     ledger INTEGER NOT NULL CHECK (ledger BETWEEN 0 AND 4294967295),
     code INTEGER NOT NULL CHECK (code BETWEEN 0 AND 65535),
     debits_must_not_exceed_credits INTEGER NOT NULL DEFAULT 0 CHECK (debits_must_not_exceed_credits IN (0,1)),
     credits_must_not_exceed_debits INTEGER NOT NULL DEFAULT 0 CHECK (credits_must_not_exceed_debits IN (0,1)),
-    timestamp INTEGER NOT NULL DEFAULT (unix_nano()) CHECK (timestamp >= 0),
+    timestamp TEXT NOT NULL DEFAULT (unix_nano()) CHECK (is_uint64(timestamp)),
     CONSTRAINT id_must_not_be_zero CHECK (id != '0'),
     CONSTRAINT id_must_not_be_int_max CHECK (id != '340282366920938463463374607431768211455'),
     CONSTRAINT flags_are_mutually_exclusive CHECK (
@@ -91,40 +71,16 @@ END;
 
 
 CREATE TABLE IF NOT EXISTS transfers (
-    id TEXT PRIMARY KEY CHECK (
-        id REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(id, '0') >= 0 AND
-        decimal_cmp(id, '340282366920938463463374607431768211455') <= 0
-    ),
-    debit_account_id TEXT NOT NULL CHECK (
-        debit_account_id REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(debit_account_id, '0') >= 0 AND
-        decimal_cmp(debit_account_id, '340282366920938463463374607431768211455') <= 0
-    ),
-    credit_account_id TEXT NOT NULL CHECK (
-        credit_account_id REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(credit_account_id, '0') >= 0 AND
-        decimal_cmp(credit_account_id, '340282366920938463463374607431768211455') <= 0
-    ),
-    amount TEXT NOT NULL CHECK (
-        amount REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(amount, '0') >= 0 AND
-        decimal_cmp(amount, '340282366920938463463374607431768211455') <= 0
-    ),
-    user_data_128 TEXT NOT NULL DEFAULT 0 CHECK (
-        user_data_128 REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(user_data_128, '0') >= 0 AND
-        decimal_cmp(user_data_128, '340282366920938463463374607431768211455') <= 0
-    ),
-    user_data_64 TEXT NOT NULL DEFAULT 0 CHECK (
-        user_data_64 REGEXP '^(?:0|[1-9][0-9]*)$' AND
-        decimal_cmp(user_data_64, '0') >= 0 AND
-        decimal_cmp(user_data_64, '18446744073709551615') <= 0
-    ),
+    id TEXT PRIMARY KEY CHECK (is_uint128(id)),
+    debit_account_id TEXT NOT NULL CHECK (is_uint128(debit_account_id)),
+    credit_account_id TEXT NOT NULL CHECK (is_uint128(credit_account_id)),
+    amount TEXT NOT NULL CHECK (is_uint128(amount)),
+    user_data_128 TEXT NOT NULL DEFAULT 0 CHECK (is_uint128(user_data_128)),
+    user_data_64 TEXT NOT NULL DEFAULT 0 CHECK (is_uint64(user_data_64)),
     user_data_32 INTEGER NOT NULL DEFAULT 0 CHECK (user_data_32 BETWEEN 0 AND 4294967295),
     ledger INTEGER NOT NULL CHECK (ledger BETWEEN 0 AND 4294967295),
     code INTEGER NOT NULL CHECK (code BETWEEN 0 AND 65535),
-    timestamp INTEGER NOT NULL DEFAULT (unix_nano()) CHECK (timestamp >= 0),
+    timestamp TEXT NOT NULL DEFAULT (unix_nano()) CHECK(is_uint64(timestamp)),
     FOREIGN KEY (debit_account_id) REFERENCES accounts(id),
     FOREIGN KEY (credit_account_id) REFERENCES accounts(id),
     CONSTRAINT id_must_not_be_zero CHECK (id != '0'),

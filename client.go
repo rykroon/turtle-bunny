@@ -3,7 +3,6 @@ package turtlebunny
 import (
 	"database/sql"
 	_ "embed"
-	"regexp"
 
 	sqlite "github.com/mattn/go-sqlite3"
 )
@@ -18,16 +17,16 @@ type Client struct {
 func NewClient(filename string) (*Client, error) {
 	sql.Register("sqlite3_custom", &sqlite.SQLiteDriver{
 		ConnectHook: func(conn *sqlite.SQLiteConn) error {
-			if err := conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
-				return err
-			}
 			if err := conn.RegisterFunc("decimal_add", decimalAdd, true); err != nil {
 				return err
 			}
 			if err := conn.RegisterFunc("decimal_sub", decimalSub, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("decimal_cmp", decimalCmp, true); err != nil {
+			if err := conn.RegisterFunc("is_uint128", isUint128, true); err != nil {
+				return err
+			}
+			if err := conn.RegisterFunc("is_uint64", isUint64, true); err != nil {
 				return err
 			}
 			if err := conn.RegisterFunc("unix_nano", unixNano, true); err != nil {
