@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -50,11 +48,11 @@ func NewCreateTransferCmd() *cobra.Command {
 }
 
 func NewLookupTransferCmd() *cobra.Command {
-	var id uint64 = 0
+	ids := []turtlebunny.Uint128{}
 
 	cmd := &cobra.Command{
-		Use:   "lookup-transfer",
-		Short: "Lookup Transfer",
+		Use:   "lookup-transfers",
+		Short: "Lookup Transfers",
 		Args:  requireFilenameArg,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := args[0]
@@ -63,11 +61,8 @@ func NewLookupTransferCmd() *cobra.Command {
 				return err
 			}
 			defer client.Close()
-			transfer, err := client.LookupTransfer(id)
+			transfers, err := client.LookupTransfers(ids...)
 			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return errors.New("transfer not found")
-				}
 				return err
 			}
 
@@ -82,21 +77,25 @@ func NewLookupTransferCmd() *cobra.Command {
 				"Timestamp",
 			)
 			fmt.Println(strings.Repeat("-", 90))
-			fmt.Printf(
-				"%7d %17d %18d %10d %6d %5d %20d\n",
-				transfer.Id,
-				transfer.DebitAccountId,
-				transfer.CreditAccountId,
-				transfer.Amount,
-				transfer.Ledger,
-				transfer.Code,
-				transfer.Timestamp,
-			)
+
+			for _, transfer := range transfers {
+				fmt.Printf(
+					"%7d %17d %18d %10d %6d %5d %20d\n",
+					transfer.Id,
+					transfer.DebitAccountId,
+					transfer.CreditAccountId,
+					transfer.Amount,
+					transfer.Ledger,
+					transfer.Code,
+					transfer.Timestamp,
+				)
+
+			}
 			return nil
 		},
 	}
 
-	cmd.Flags().Uint64VarP(&id, "id", "i", 0, "id")
+	Uint128SliceVarP(cmd.Flags(), &ids, "id", "i", []turtlebunny.Uint128{}, "ids")
 	cmd.MarkFlagRequired("id")
 
 	return cmd

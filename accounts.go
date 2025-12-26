@@ -1,12 +1,14 @@
 package turtlebunny
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/rykroon/turtlebunny/internal/uint128x"
-	"lukechampine.com/uint128"
 )
 
 type CreateAccountParams struct {
-	Id                         uint128.Uint128
+	Id                         Uint128
 	Ledger                     uint32
 	Code                       uint16
 	DebitsMustNotExceedCredits bool
@@ -28,9 +30,9 @@ func (c *Client) CreateAccount(params *CreateAccountParams) error {
 }
 
 type Account struct {
-	Id                         uint128.Uint128
-	DebitsPosted               uint128.Uint128
-	CreditsPosted              uint128.Uint128
+	Id                         Uint128
+	DebitsPosted               Uint128
+	CreditsPosted              Uint128
 	Ledger                     uint32
 	Code                       uint16
 	DebitsMustNotExceedCredits bool
@@ -38,9 +40,15 @@ type Account struct {
 	Timestamp                  uint64
 }
 
-func (c *Client) LookupAccount(id uint128.Uint128) (*Account, error) {
-	account := &Account{}
-	err := c.db.QueryRow(`
+func (c *Client) LookupAccounts(ids ...Uint128) ([]*Account, error) {
+	placeholders := make([]string, len(ids))
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id.String()
+	}
+
+	query := fmt.Sprintf(`
 		SELECT
 			id,
 			debits_posted,
@@ -51,19 +59,35 @@ func (c *Client) LookupAccount(id uint128.Uint128) (*Account, error) {
 			credits_must_not_exceed_debits,
 			timestamp
 		FROM accounts
-		WHERE id = ?
-	`, id.String()).Scan(
-		uint128x.NewScannableUint128(&account.Id),
-		uint128x.NewScannableUint128(&account.DebitsPosted),
-		uint128x.NewScannableUint128(&account.CreditsPosted),
-		&account.Ledger,
-		&account.Code,
-		&account.DebitsMustNotExceedCredits,
-		&account.CreditsMustNotExceedDebits,
-		&account.Timestamp,
-	)
+		WHERE id IN (%s)
+	`, strings.Join(placeholders, ","))
+
+	rows, err := c.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
-	return account, nil
+	defer rows.Close()
+
+	result := []*Account{}
+	for rows.Next() {
+		account := &Account{}
+		err := rows.Scan(
+			uint128x.NewScannableUint128(&account.Id),
+			uint128x.NewScannableUint128(&account.DebitsPosted),
+			uint128x.NewScannableUint128(&account.CreditsPosted),
+			&account.Ledger,
+			&account.Code,
+			&account.DebitsMustNotExceedCredits,
+			&account.CreditsMustNotExceedDebits,
+			&account.Timestamp,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, account)
+
+	}
+	return result, nil
 }

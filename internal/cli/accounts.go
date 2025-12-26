@@ -1,15 +1,11 @@
 package cli
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/rykroon/turtlebunny"
-	"github.com/rykroon/turtlebunny/internal/uint128x"
 	"github.com/spf13/cobra"
-	"lukechampine.com/uint128"
 )
 
 func NewCreateAccountCmd() *cobra.Command {
@@ -34,7 +30,7 @@ func NewCreateAccountCmd() *cobra.Command {
 		},
 	}
 
-	uint128x.Uint128VarP(cmd.Flags(), &params.Id, "id", "i", uint128.Zero, "id")
+	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", turtlebunny.Uint128{}, "id")
 	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
 	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
 	cmd.Flags().BoolVar(&params.DebitsMustNotExceedCredits, "debits-must-not-exceed-credits", false, "debits must not exceed credits")
@@ -49,11 +45,11 @@ func NewCreateAccountCmd() *cobra.Command {
 }
 
 func NewLookupAccountCmd() *cobra.Command {
-	id := uint128.Zero
+	ids := []turtlebunny.Uint128{}
 
 	cmd := &cobra.Command{
-		Use:   "lookup-account",
-		Short: "lookup account",
+		Use:   "lookup-accounts",
+		Short: "lookup accounts",
 		Args:  requireFilenameArg,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := args[0]
@@ -62,11 +58,8 @@ func NewLookupAccountCmd() *cobra.Command {
 				return err
 			}
 			defer client.Close()
-			account, err := client.LookupAccount(id)
+			accounts, err := client.LookupAccounts(ids...)
 			if err != nil {
-				if errors.Is(err, sql.ErrNoRows) {
-					return errors.New("account not found")
-				}
 				return err
 			}
 
@@ -80,20 +73,24 @@ func NewLookupAccountCmd() *cobra.Command {
 				"Timestamp",
 			)
 			fmt.Println(strings.Repeat("-", 85))
-			fmt.Printf(
-				"%15s %15s %15s %7d %5d %20d\n",
-				account.Id.String(),
-				account.DebitsPosted.String(),
-				account.CreditsPosted.String(),
-				account.Ledger,
-				account.Code,
-				account.Timestamp,
-			)
+
+			for _, account := range accounts {
+				fmt.Printf(
+					"%15s %15s %15s %7d %5d %20d\n",
+					account.Id.String(),
+					account.DebitsPosted.String(),
+					account.CreditsPosted.String(),
+					account.Ledger,
+					account.Code,
+					account.Timestamp,
+				)
+			}
+
 			return nil
 		},
 	}
 
-	uint128x.Uint128VarP(cmd.Flags(), &id, "id", "i", uint128.Zero, "id")
+	Uint128SliceVarP(cmd.Flags(), &ids, "id", "i", []turtlebunny.Uint128{}, "ids")
 	cmd.MarkFlagRequired("id")
 	return cmd
 }
