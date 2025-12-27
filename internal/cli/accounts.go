@@ -6,6 +6,7 @@ import (
 
 	"github.com/rykroon/turtlebunny"
 	"github.com/spf13/cobra"
+	"lukechampine.com/uint128"
 )
 
 func NewCreateAccountCmd() *cobra.Command {
@@ -30,7 +31,7 @@ func NewCreateAccountCmd() *cobra.Command {
 		},
 	}
 
-	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", turtlebunny.Uint128{}, "id")
+	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", uint128.Uint128{}, "id")
 	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
 	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
 	cmd.Flags().BoolVar(&params.DebitsMustNotExceedCredits, "debits-must-not-exceed-credits", false, "debits must not exceed credits")
@@ -45,7 +46,7 @@ func NewCreateAccountCmd() *cobra.Command {
 }
 
 func NewLookupAccountCmd() *cobra.Command {
-	ids := []turtlebunny.Uint128{}
+	ids := []uint128.Uint128{}
 
 	cmd := &cobra.Command{
 		Use:   "lookup-accounts",
@@ -90,7 +91,7 @@ func NewLookupAccountCmd() *cobra.Command {
 		},
 	}
 
-	Uint128SliceVarP(cmd.Flags(), &ids, "id", "i", []turtlebunny.Uint128{}, "ids")
+	Uint128SliceVarP(cmd.Flags(), &ids, "id", "i", []uint128.Uint128{}, "ids")
 	cmd.MarkFlagRequired("id")
 	return cmd
 }

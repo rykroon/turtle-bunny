@@ -3,11 +3,13 @@ package turtlebunny
 import (
 	"fmt"
 	"strings"
+
+	"lukechampine.com/uint128"
 )
 
 type CreateAccountParams struct {
-	Id                         Uint128
-	UserData128                Uint128
+	Id                         uint128.Uint128
+	UserData128                uint128.Uint128
 	UserData64                 uint64
 	UserData32                 uint32
 	Ledger                     uint32
@@ -17,10 +19,10 @@ type CreateAccountParams struct {
 }
 
 type Account struct {
-	Id                         Uint128
-	DebitsPosted               Uint128
-	CreditsPosted              Uint128
-	UserData128                Uint128
+	Id                         uint128.Uint128
+	DebitsPosted               uint128.Uint128
+	CreditsPosted              uint128.Uint128
+	UserData128                uint128.Uint128
 	UserData64                 uint64
 	UserData32                 uint32
 	Ledger                     uint32
@@ -61,7 +63,7 @@ func (c *Client) CreateAccount(params *CreateAccountParams) error {
 	return nil
 }
 
-func (c *Client) LookupAccounts(ids ...Uint128) ([]*Account, error) {
+func (c *Client) LookupAccounts(ids ...uint128.Uint128) ([]*Account, error) {
 	placeholders := make([]string, len(ids))
 	args := make([]any, len(ids))
 	for i, id := range ids {

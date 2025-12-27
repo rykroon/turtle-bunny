@@ -3,14 +3,16 @@ package turtlebunny
 import (
 	"fmt"
 	"strings"
+
+	"lukechampine.com/uint128"
 )
 
 type CreateTransferParams struct {
-	Id              Uint128
-	DebitAccountId  Uint128
-	CreditAccountId Uint128
-	Amount          Uint128
-	UserData128     Uint128
+	Id              uint128.Uint128
+	DebitAccountId  uint128.Uint128
+	CreditAccountId uint128.Uint128
+	Amount          uint128.Uint128
+	UserData128     uint128.Uint128
 	UserData64      uint64
 	UserData32      uint32
 	Ledger          uint32
@@ -51,11 +53,11 @@ func (c *Client) CreateTransfer(params CreateTransferParams) error {
 }
 
 type Transfer struct {
-	Id              Uint128
-	DebitAccountId  Uint128
-	CreditAccountId Uint128
-	Amount          Uint128
-	UserData128     Uint128
+	Id              uint128.Uint128
+	DebitAccountId  uint128.Uint128
+	CreditAccountId uint128.Uint128
+	Amount          uint128.Uint128
+	UserData128     uint128.Uint128
 	UserData64      uint64
 	UserData32      uint32
 	Ledger          uint32
@@ -63,7 +65,7 @@ type Transfer struct {
 	Timestamp       uint64
 }
 
-func (c *Client) LookupTransfers(ids ...Uint128) ([]*Transfer, error) {
+func (c *Client) LookupTransfers(ids ...uint128.Uint128) ([]*Transfer, error) {
 	placeholders := make([]string, len(ids))
 	args := make([]any, len(ids))
 	for i, id := range ids {

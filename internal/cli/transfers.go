@@ -6,6 +6,7 @@ import (
 
 	"github.com/rykroon/turtlebunny"
 	"github.com/spf13/cobra"
+	"lukechampine.com/uint128"
 )
 
 func NewCreateTransferCmd() *cobra.Command {
@@ -30,10 +31,10 @@ func NewCreateTransferCmd() *cobra.Command {
 		},
 	}
 
-	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", turtlebunny.Uint128{}, "id")
-	Uint128VarP(cmd.Flags(), &params.DebitAccountId, "debit-account-id", "D", turtlebunny.Uint128{}, "debit account id")
-	Uint128VarP(cmd.Flags(), &params.CreditAccountId, "credit-account-id", "C", turtlebunny.Uint128{}, "credit account id")
-	Uint128VarP(cmd.Flags(), &params.Amount, "amount", "a", turtlebunny.Uint128{}, "amount")
+	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", uint128.Uint128{}, "id")
+	Uint128VarP(cmd.Flags(), &params.DebitAccountId, "debit-account-id", "D", uint128.Uint128{}, "debit account id")
+	Uint128VarP(cmd.Flags(), &params.CreditAccountId, "credit-account-id", "C", uint128.Uint128{}, "credit account id")
+	Uint128VarP(cmd.Flags(), &params.Amount, "amount", "a", uint128.Uint128{}, "amount")
 	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
 	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
 
@@ -48,7 +49,7 @@ func NewCreateTransferCmd() *cobra.Command {
 }
 
 func NewLookupTransferCmd() *cobra.Command {
-	ids := []turtlebunny.Uint128{}
+	ids := []uint128.Uint128{}
 
 	cmd := &cobra.Command{
 		Use:   "lookup-transfers",
@@ -95,7 +96,7 @@ func NewLookupTransferCmd() *cobra.Command {
 		},
 	}
 
-	Uint128SliceVarP(cmd.Flags(), &ids, "id", "i", []turtlebunny.Uint128{}, "ids")
+	Uint128SliceVarP(cmd.Flags(), &ids, "id", "i", []uint128.Uint128{}, "ids")
 	cmd.MarkFlagRequired("id")
 
 	return cmd
