@@ -3,8 +3,6 @@ package turtlebunny
 import (
 	"fmt"
 	"strings"
-
-	"github.com/rykroon/turtlebunny/internal/uint128x"
 )
 
 type CreateAccountParams struct {
@@ -72,9 +70,9 @@ func (c *Client) LookupAccounts(ids ...Uint128) ([]*Account, error) {
 	for rows.Next() {
 		account := &Account{}
 		err := rows.Scan(
-			uint128x.NewScannableUint128(&account.Id),
-			uint128x.NewScannableUint128(&account.DebitsPosted),
-			uint128x.NewScannableUint128(&account.CreditsPosted),
+			&scannableUint128{&account.Id},
+			&scannableUint128{&account.DebitsPosted},
+			&scannableUint128{&account.CreditsPosted},
 			&account.Ledger,
 			&account.Code,
 			&account.DebitsMustNotExceedCredits,

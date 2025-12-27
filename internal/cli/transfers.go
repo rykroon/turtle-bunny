@@ -80,11 +80,11 @@ func NewLookupTransferCmd() *cobra.Command {
 
 			for _, transfer := range transfers {
 				fmt.Printf(
-					"%7d %17d %18d %10d %6d %5d %20d\n",
-					transfer.Id,
-					transfer.DebitAccountId,
-					transfer.CreditAccountId,
-					transfer.Amount,
+					"%7s %17s %18s %10s %6d %5d %20d\n",
+					transfer.Id.String(),
+					transfer.DebitAccountId.String(),
+					transfer.CreditAccountId.String(),
+					transfer.Amount.String(),
 					transfer.Ledger,
 					transfer.Code,
 					transfer.Timestamp,

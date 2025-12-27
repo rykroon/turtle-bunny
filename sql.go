@@ -1,4 +1,4 @@
-package uint128x
+package turtlebunny
 
 import (
 	"errors"
@@ -6,15 +6,15 @@ import (
 	"lukechampine.com/uint128"
 )
 
-type ScannableUint128 struct {
+type scannableUint128 struct {
 	*uint128.Uint128
 }
 
-func NewScannableUint128(u *uint128.Uint128) *ScannableUint128 {
-	return &ScannableUint128{u}
+func newScannableUint128(u *uint128.Uint128) *scannableUint128 {
+	return &scannableUint128{u}
 }
 
-func (s *ScannableUint128) Scan(src any) error {
+func (s *scannableUint128) Scan(src any) error {
 	srcString, ok := src.(string)
 	if !ok {
 		return errors.New("src value is not a string")
