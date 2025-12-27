@@ -30,10 +30,10 @@ func NewCreateTransferCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Uint64VarP(&params.Id, "id", "i", 0, "id")
-	cmd.Flags().Uint64VarP(&params.DebitAccountId, "debit-account-id", "D", 0, "debit account id")
-	cmd.Flags().Uint64VarP(&params.CreditAccountId, "credit-account-id", "C", 0, "credit account id")
-	cmd.Flags().Uint64VarP(&params.Amount, "amount", "a", 0, "amount")
+	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", turtlebunny.Uint128{}, "id")
+	Uint128VarP(cmd.Flags(), &params.DebitAccountId, "debit-account-id", "D", turtlebunny.Uint128{}, "debit account id")
+	Uint128VarP(cmd.Flags(), &params.CreditAccountId, "credit-account-id", "C", turtlebunny.Uint128{}, "credit account id")
+	Uint128VarP(cmd.Flags(), &params.Amount, "amount", "a", turtlebunny.Uint128{}, "amount")
 	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
 	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
 
