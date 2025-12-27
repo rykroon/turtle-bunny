@@ -7,35 +7,58 @@ import (
 
 type CreateAccountParams struct {
 	Id                         Uint128
+	UserData128                Uint128
+	UserData64                 uint64
+	UserData32                 uint32
 	Ledger                     uint32
 	Code                       uint16
 	DebitsMustNotExceedCredits bool
 	CreditsMustNotExceedDebits bool
-}
-
-func (c *Client) CreateAccount(params *CreateAccountParams) error {
-	_, err := c.db.Exec(`
-		INSERT INTO accounts
-		(id, ledger, code, debits_must_not_exceed_credits, credits_must_not_exceed_debits)
-		VALUES
-		(?, ?, ?, ?, ?)
-	`, params.Id.String(), params.Ledger, params.Code, params.DebitsMustNotExceedCredits, params.CreditsMustNotExceedDebits)
-
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 type Account struct {
 	Id                         Uint128
 	DebitsPosted               Uint128
 	CreditsPosted              Uint128
+	UserData128                Uint128
+	UserData64                 uint64
+	UserData32                 uint32
 	Ledger                     uint32
 	Code                       uint16
 	DebitsMustNotExceedCredits bool
 	CreditsMustNotExceedDebits bool
 	Timestamp                  uint64
+}
+
+func (c *Client) CreateAccount(params *CreateAccountParams) error {
+	_, err := c.db.Exec(`
+		INSERT INTO accounts (
+			id,
+			user_data_128,
+			user_data_64,
+			user_data_32,
+			ledger,
+			code,
+			debits_must_not_exceed_credits,
+			credits_must_not_exceed_debits
+		)
+		VALUES
+		(?, ?, ?, ?, ?, ?, ?, ?)
+	`,
+		params.Id.String(),
+		params.UserData128.String(),
+		params.UserData64,
+		params.UserData32,
+		params.Ledger,
+		params.Code,
+		params.DebitsMustNotExceedCredits,
+		params.CreditsMustNotExceedDebits,
+	)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *Client) LookupAccounts(ids ...Uint128) ([]*Account, error) {
