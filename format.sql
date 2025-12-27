@@ -54,7 +54,7 @@ BEGIN
     END;
 END;
 
-CREATE TRIGGER IF NOT EXISTS before_update_account BEFORE UPDATE ON accounts
+CREATE TRIGGER IF NOT EXISTS prevent_update_on_accounts BEFORE UPDATE ON accounts
 BEGIN
     SELECT
     CASE
@@ -79,7 +79,7 @@ BEGIN
     END;
 END;
 
-CREATE TRIGGER IF NOT EXISTS before_delete_account BEFORE DELETE ON accounts
+CREATE TRIGGER IF NOT EXISTS prevent_delete_on_accounts BEFORE DELETE ON accounts
 BEGIN
     SELECT
     CASE
@@ -152,7 +152,7 @@ BEGIN
     UPDATE accounts SET credits_posted = decimal_add(credits_posted, NEW.amount) WHERE id = NEW.credit_account_id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS before_update_transfer BEFORE UPDATE ON transfers
+CREATE TRIGGER IF NOT EXISTS prevent_update_on_transfers BEFORE UPDATE ON transfers
 BEGIN
     SELECT
     CASE
@@ -161,7 +161,7 @@ BEGIN
     END;
 END;
 
-CREATE TRIGGER IF NOT EXISTS before_delete_transfer BEFORE DELETE ON transfers
+CREATE TRIGGER IF NOT EXISTS prevent_delete_on_transfers BEFORE DELETE ON transfers
 BEGIN
     SELECT
     CASE
