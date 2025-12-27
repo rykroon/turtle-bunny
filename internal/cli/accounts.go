@@ -31,7 +31,7 @@ func NewCreateAccountCmd() *cobra.Command {
 		},
 	}
 
-	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", uint128.Uint128{}, "id")
+	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", uint128.Zero, "id")
 	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
 	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
 	cmd.Flags().BoolVar(&params.DebitsMustNotExceedCredits, "debits-must-not-exceed-credits", false, "debits must not exceed credits")
