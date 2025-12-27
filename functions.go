@@ -1,58 +1,71 @@
 package turtlebunny
 
 import (
-	"strconv"
-	"time"
+	"errors"
 
-	"lukechampine.com/uint128"
+	"github.com/shopspring/decimal"
 )
 
-func isUint128(s string) (bool, error) {
-	_, err := uint128.FromString(s)
-	if err != nil {
-		return false, err
+func toDecimal(v any) (string, error) {
+	switch x := v.(type) {
+	case string:
+		d, err := decimal.NewFromString(x)
+		return d.String(), err
+	case int64:
+		d := decimal.NewFromInt(x)
+		return d.String(), nil
+	case float64:
+		d := decimal.NewFromFloat(x)
+		return d.String(), nil
+	default:
+		return "", errors.New("unable to parse as number")
 	}
-
-	return true, nil
-}
-
-func isUint64(s string) (bool, error) {
-	_, err := strconv.ParseUint(s, 10, 64)
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func unixNano() string {
-	return strconv.Itoa(int(time.Now().UnixNano()))
 }
 
 func decimalAdd(x, y string) (string, error) {
-	a, err := uint128.FromString(x)
+	dx, err := decimal.NewFromString(x)
 	if err != nil {
 		return "", err
 	}
 
-	b, err := uint128.FromString(y)
+	dy, err := decimal.NewFromString(y)
 	if err != nil {
 		return "", err
 	}
 
-	return a.Add(b).String(), nil
+	return dx.Add(dy).String(), nil
 }
 
 func decimalSub(x, y string) (string, error) {
-	a, err := uint128.FromString(x)
+	dx, err := decimal.NewFromString(x)
 	if err != nil {
 		return "", err
 	}
 
-	b, err := uint128.FromString(y)
+	dy, err := decimal.NewFromString(y)
 	if err != nil {
 		return "", err
 	}
 
-	return a.Sub(b).String(), nil
+	return dx.Sub(dy).String(), nil
+}
+
+func decimalCmp(x, y string) (int, error) {
+	dx, err := decimal.NewFromString(x)
+	if err != nil {
+		return 0, err
+	}
+
+	dy, err := decimal.NewFromString(y)
+	if err != nil {
+		return 0, err
+	}
+
+	if dx.LessThan(dy) {
+		return -1, nil
+	} else if dx.Equal(dy) {
+		return 0, nil
+	} else {
+		return 1, nil
+	}
 }
