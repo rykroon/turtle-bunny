@@ -1,7 +1,6 @@
 package turtlebunny
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -81,7 +80,7 @@ func TestIdMustNotBeZero(t *testing.T) {
 		t.Errorf("expected error")
 	}
 
-	if !strings.Contains(err.Error(), "id_must_not_be_zero") {
+	if err.Error() != "id_must_not_be_zero" {
 		t.Errorf("expected %s, got %s", "id_must_not_be_zero", err.Error())
 	}
 }
@@ -106,7 +105,7 @@ func TestIdMustNotBeIntMax(t *testing.T) {
 		t.Errorf("expected error")
 	}
 
-	if !strings.Contains(err.Error(), "id_must_not_be_int_max") {
+	if err.Error() != "id_must_not_be_int_max" {
 		t.Errorf("expected %s, got %s", "id_must_not_be_int_max", err.Error())
 	}
 }
@@ -131,7 +130,7 @@ func TestFlagsAreMutuallyExclusive(t *testing.T) {
 		t.Errorf("expected error")
 	}
 
-	if !strings.Contains(err.Error(), "flags_are_mutually_exclusive") {
+	if err.Error() != "flags_are_mutually_exclusive" {
 		t.Errorf("expected %s, got %s", "flags_are_mutually_exclusive", err.Error())
 	}
 }
@@ -156,7 +155,7 @@ func TestDebitsPostedMustBeZero(t *testing.T) {
 		t.Errorf("expected error")
 	}
 
-	if !strings.Contains(err.Error(), "debits_posted_must_be_zero") {
+	if err.Error() != "debits_posted_must_be_zero" {
 		t.Errorf("expected %s, got %s", "debits_posted_must_be_zero", err.Error())
 	}
 }
@@ -181,7 +180,7 @@ func TestCreditsPostedMustBeZero(t *testing.T) {
 		t.Errorf("expected error")
 	}
 
-	if !strings.Contains(err.Error(), "credits_posted_must_be_zero") {
+	if err.Error() != "credits_posted_must_be_zero" {
 		t.Errorf("expected %s, got %s", "credits_posted_must_be_zero", err.Error())
 	}
 }
@@ -203,7 +202,7 @@ func TestLedgerMustNotBeZero(t *testing.T) {
 		"1", "0", "0", "0", "0", 0, 0, 1, false, false,
 	)
 
-	if !strings.Contains(err.Error(), "ledger_must_not_be_zero") {
+	if err.Error() != "ledger_must_not_be_zero" {
 		t.Errorf("expected %s, got %s", "ledger_must_not_be_zero", err.Error())
 	}
 }
@@ -225,7 +224,7 @@ func TestCodeMustNotBeZero(t *testing.T) {
 		"1", "0", "0", "0", "0", 0, 1, 0, false, false,
 	)
 
-	if !strings.Contains(err.Error(), "code_must_not_be_zero") {
+	if err.Error() != "code_must_not_be_zero" {
 		t.Errorf("expected %s, got %s", "code_must_not_be_zero", err.Error())
 	}
 }
@@ -262,7 +261,6 @@ func TestAccountUpdate(t *testing.T) {
 	}
 
 	_, err = client.db.Exec(`UPDATE accounts SET id = 2 WHERE id = 1`)
-
 	if err == nil {
 		t.Error("expected error")
 	}
