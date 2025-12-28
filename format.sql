@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     timestamp TEXT NOT NULL UNIQUE DEFAULT ((decimal(unixepoch('subsec') * 1000000))) CHECK (
         timestamp REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(timestamp, '0') IN (0, 1) AND
-        decimal_cmp(timestamp, '18446744073709551615') IN (-1, 0) AND
+        decimal_cmp(timestamp, '18446744073709551615') IN (-1, 0)
         -- make sure timestamp is less than or equal to current time
     )
 ) STRICT, WITHOUT ROWID;
