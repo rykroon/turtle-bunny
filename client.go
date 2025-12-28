@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "embed"
 	"regexp"
+	"slices"
 
 	sqlite "github.com/mattn/go-sqlite3"
 )
@@ -15,8 +16,8 @@ type Client struct {
 	db *sql.DB
 }
 
-func NewClient(filename string) (*Client, error) {
-	sql.Register("sqlite3_custom", &sqlite.SQLiteDriver{
+func newDriver() *sqlite.SQLiteDriver {
+	return &sqlite.SQLiteDriver{
 		ConnectHook: func(conn *sqlite.SQLiteConn) error {
 			if err := conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
 				return err
@@ -35,9 +36,15 @@ func NewClient(filename string) (*Client, error) {
 			}
 			return nil
 		},
-	})
+	}
+}
 
-	db, err := sql.Open("sqlite3_custom", filename)
+func NewClient(filename string) (*Client, error) {
+	if !slices.Contains(sql.Drivers(), "sqlite3_turtlebunny") {
+		sql.Register("sqlite3_turtlebunny", newDriver())
+	}
+
+	db, err := sql.Open("sqlite3_turtlebunny", filename)
 	if err != nil {
 		return nil, err
 	}
