@@ -25,7 +25,7 @@ func NewCreateAccountCmd() *cobra.Command {
 			defer client.Close()
 			err = client.CreateAccount(params)
 			if err != nil {
-				return fmt.Errorf("fuck: %w", err)
+				return err
 			}
 			return nil
 		},
