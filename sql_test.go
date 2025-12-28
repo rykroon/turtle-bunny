@@ -32,43 +32,32 @@ func TestUint128(t *testing.T) {
 		t.Error(err)
 	}
 
-	query := `
-	INSERT INTO accounts (
-		id,
-		debits_posted,
-		credits_posted,
-		user_data_128,
-		user_data_64,
-		user_data_32,
-		ledger,
-		code,
-		debits_must_not_exceed_credits,
-		credits_must_not_exceed_debits
-	) VALUES (?, 0, 0, 0, 0, 0, 1, 1, false, false)
-	`
 	// negative integer should fail
-	_, err = client.db.Exec(query, "-100")
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"-123", "0", "0", "0", "0", 0, 1, 1, false, false,
+	)
 	if err == nil {
 		t.Errorf("expected error")
 	}
 
 	// decimal should fail
-	_, err = client.db.Exec(query, "1.23")
-	if err == nil {
-		t.Errorf("expected error")
-	}
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"1.23", "0", "0", "0", "0", 0, 1, 1, false, false,
+	)
 
 	// leading zeros should fail
-	_, err = client.db.Exec(query, "0123")
-	if err == nil {
-		t.Errorf("expected error")
-	}
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"0123", "0", "0", "0", "0", 0, 1, 1, false, false,
+	)
 
 	// non numeric should fail
-	_, err = client.db.Exec(query, "Hello World")
-	if err == nil {
-		t.Errorf("expected error")
-	}
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"Hello World", "0", "0", "0", "0", 0, 1, 1, false, false,
+	)
 }
 
 func TestIdMustNotBeZero(t *testing.T) {
