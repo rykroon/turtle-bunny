@@ -73,7 +73,7 @@ BEGIN
             (OLD.debits_must_not_exceed_credits != NEW.debits_must_not_exceed_credits) OR
             (OLD.credits_must_not_exceed_debits != NEW.credits_must_not_exceed_debits) OR
             (OLD.timestamp != NEW.timestamp)
-        THEN RAISE(ABORT, "accounts cannot be changed")
+        THEN RAISE(ABORT, "account_cannot_be_modified")
         WHEN NEW.credits_must_not_exceed_debits AND NEW.credits_posted > NEW.debits_posted
         THEN RAISE(ABORT, "exceeds_debits")
         WHEN NEW.credits_must_not_exceed_debits AND NEW.credits_posted > NEW.debits_posted
@@ -83,7 +83,7 @@ END;
 
 CREATE TRIGGER IF NOT EXISTS prevent_delete_on_accounts BEFORE DELETE ON accounts
 BEGIN
-    SELECT CASE WHEN true THEN RAISE(ABORT, "accounts cannot be deleted") END;
+    SELECT CASE WHEN true THEN RAISE(ABORT, "account_cannot_be_deleted") END;
 END;
 
 
