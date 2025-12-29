@@ -8,46 +8,41 @@ import (
 	"lukechampine.com/uint128"
 )
 
-type uint128Flag uint128.Uint128
-
-func newUint128Flag(val uint128.Uint128, p *uint128.Uint128) *uint128Flag {
-	*p = val
-	return (*uint128Flag)(p)
+type GenericFlag[T fmt.Stringer] struct {
+	ptr     *T
+	type_   string
+	setFunc func(s string, p *T) error
 }
 
-func (u uint128Flag) String() string {
-	return uint128.Uint128(u).String()
-}
-
-func (uf *uint128Flag) Set(s string) error {
-	u, err := uint128.FromString(s)
-	if err != nil {
-		return err
+func (gf GenericFlag[T]) String() string {
+	if gf.ptr == nil {
+		return "nil pointer"
 	}
-	*uf = uint128Flag(u)
-	return nil
+	v := *gf.ptr
+	return v.String()
 }
 
-func (u uint128Flag) Type() string {
-	return "uint128"
+func (gf *GenericFlag[T]) Set(s string) error {
+	return gf.setFunc(s, gf.ptr)
 }
 
-func Uint128VarP(f *pflag.FlagSet, p *uint128.Uint128, name, shorthand string, value uint128.Uint128, usage string) {
-	f.VarP(newUint128Flag(value, p), name, shorthand, usage)
+func (gf GenericFlag[T]) Type() string {
+	return gf.type_
 }
 
-func Uint128Var(f *pflag.FlagSet, p *uint128.Uint128, name string, value uint128.Uint128, usage string) {
-	Uint128VarP(f, p, name, "", value, usage)
-}
-
-func Uint128P(f *pflag.FlagSet, name, shorthand string, value uint128.Uint128, usage string) {
-	p := new(uint128.Uint128)
-	Uint128VarP(f, p, name, shorthand, value, usage)
-}
-
-func Uint128(f *pflag.FlagSet, name string, value uint128.Uint128, usage string) {
-	p := new(uint128.Uint128)
-	Uint128VarP(f, p, name, "", value, usage)
+func NewUint128Flag(p *uint128.Uint128) *GenericFlag[uint128.Uint128] {
+	return &GenericFlag[uint128.Uint128]{
+		ptr:   p,
+		type_: "uint128",
+		setFunc: func(s string, p *uint128.Uint128) error {
+			v, err := uint128.FromString(s)
+			if err != nil {
+				return err
+			}
+			*p = v
+			return nil
+		},
+	}
 }
 
 // ~~~~~~~~~~~~~~~~

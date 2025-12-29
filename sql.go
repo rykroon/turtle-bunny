@@ -6,23 +6,29 @@ import (
 	"lukechampine.com/uint128"
 )
 
-type scannableUint128 struct {
-	*uint128.Uint128
+type GenericScanner[T any] struct {
+	ptr      *T
+	scanFunc func(any, *T) error
 }
 
-func newScannableUint128(u *uint128.Uint128) *scannableUint128 {
-	return &scannableUint128{u}
+func (gs *GenericScanner[T]) Scan(src any) error {
+	return gs.scanFunc(src, gs.ptr)
 }
 
-func (s *scannableUint128) Scan(src any) error {
-	srcString, ok := src.(string)
-	if !ok {
-		return errors.New("src value is not a string")
+func NewScannableUint128(p *uint128.Uint128) *GenericScanner[uint128.Uint128] {
+	return &GenericScanner[uint128.Uint128]{
+		ptr: p,
+		scanFunc: func(src any, p *uint128.Uint128) error {
+			srcString, ok := src.(string)
+			if !ok {
+				return errors.New("src value is not a string")
+			}
+			v, err := uint128.FromString(srcString)
+			if err != nil {
+				return err
+			}
+			*p = v
+			return nil
+		},
 	}
-	u, err := uint128.FromString(srcString)
-	if err != nil {
-		return err
-	}
-	*s.Uint128 = u
-	return nil
 }

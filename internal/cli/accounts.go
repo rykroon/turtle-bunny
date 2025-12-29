@@ -10,7 +10,7 @@ import (
 )
 
 func NewCreateAccountCmd() *cobra.Command {
-	params := &turtlebunny.CreateAccountParams{}
+	params := turtlebunny.CreateAccountParams{}
 
 	cmd := &cobra.Command{
 		Use:   "create-account",
@@ -31,16 +31,29 @@ func NewCreateAccountCmd() *cobra.Command {
 		},
 	}
 
-	Uint128VarP(cmd.Flags(), &params.Id, "id", "i", uint128.Zero, "id")
+	cmd.Flags().VarP(NewUint128Flag(&params.Id), "id", "i", "id")
 	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
 	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
-	cmd.Flags().BoolVar(&params.DebitsMustNotExceedCredits, "debits-must-not-exceed-credits", false, "debits must not exceed credits")
-	cmd.Flags().BoolVar(&params.CreditsMustNotExceedDebits, "credits-must-not-exceed-debits", false, "credits must not exceed debits")
+	cmd.Flags().BoolVar(
+		&params.DebitsMustNotExceedCredits,
+		"debits-must-not-exceed-credits",
+		false,
+		"debits must not exceed credits",
+	)
+
+	cmd.Flags().BoolVar(
+		&params.CreditsMustNotExceedDebits,
+		"credits-must-not-exceed-debits",
+		false,
+		"credits must not exceed debits",
+	)
 
 	cmd.MarkFlagRequired("id")
 	cmd.MarkFlagRequired("ledger")
 	cmd.MarkFlagRequired("code")
-	cmd.MarkFlagsMutuallyExclusive("debits-must-not-exceed-credits", "credits-must-not-exceed-debits")
+	cmd.MarkFlagsMutuallyExclusive(
+		"debits-must-not-exceed-credits", "credits-must-not-exceed-debits",
+	)
 
 	return cmd
 }

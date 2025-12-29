@@ -100,11 +100,11 @@ func (c *Client) LookupTransfers(ids ...uint128.Uint128) ([]*Transfer, error) {
 	for rows.Next() {
 		transfer := &Transfer{}
 		err := rows.Scan(
-			&scannableUint128{&transfer.Id},
-			&scannableUint128{&transfer.DebitAccountId},
-			&scannableUint128{&transfer.CreditAccountId},
-			&scannableUint128{&transfer.Amount},
-			&scannableUint128{&transfer.UserData128},
+			NewScannableUint128(&transfer.Id),
+			NewScannableUint128(&transfer.DebitAccountId),
+			NewScannableUint128(&transfer.CreditAccountId),
+			NewScannableUint128(&transfer.Amount),
+			NewScannableUint128(&transfer.UserData128),
 			&transfer.UserData64,
 			&transfer.UserData32,
 			&transfer.Ledger,

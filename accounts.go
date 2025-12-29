@@ -32,7 +32,7 @@ type Account struct {
 	Timestamp                  uint64
 }
 
-func (c *Client) CreateAccount(params *CreateAccountParams) error {
+func (c *Client) CreateAccount(params CreateAccountParams) error {
 	_, err := c.db.Exec(`
 		INSERT INTO accounts (
 			id,
@@ -95,9 +95,9 @@ func (c *Client) LookupAccounts(ids ...uint128.Uint128) ([]*Account, error) {
 	for rows.Next() {
 		account := &Account{}
 		err := rows.Scan(
-			&scannableUint128{&account.Id},
-			&scannableUint128{&account.DebitsPosted},
-			&scannableUint128{&account.CreditsPosted},
+			NewScannableUint128(&account.Id),
+			NewScannableUint128(&account.DebitsPosted),
+			NewScannableUint128(&account.CreditsPosted),
 			&account.Ledger,
 			&account.Code,
 			&account.DebitsMustNotExceedCredits,
