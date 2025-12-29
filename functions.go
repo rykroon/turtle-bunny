@@ -1,71 +1,46 @@
 package turtlebunny
 
 import (
-	"errors"
-
 	"github.com/shopspring/decimal"
 )
 
-func toDecimal(v any) (string, error) {
+func toDecimal(v any) decimal.Decimal {
 	switch x := v.(type) {
+	case int64:
+		return decimal.NewFromInt(x)
+	case float64:
+		return decimal.NewFromFloat(x)
 	case string:
 		d, err := decimal.NewFromString(x)
-		return d.String(), err
-	case int64:
-		d := decimal.NewFromInt(x)
-		return d.String(), nil
-	case float64:
-		d := decimal.NewFromFloat(x)
-		return d.String(), nil
+		if err != nil {
+			return decimal.Zero
+		}
+		return d
 	default:
-		return "", errors.New("unable to parse as number")
+		return decimal.Zero
 	}
 }
 
-func decimalAdd(x, y string) (string, error) {
-	dx, err := decimal.NewFromString(x)
-	if err != nil {
-		return "", err
-	}
-
-	dy, err := decimal.NewFromString(y)
-	if err != nil {
-		return "", err
-	}
-
-	return dx.Add(dy).String(), nil
+func decimalAdd(x, y any) string {
+	dx := toDecimal(x)
+	dy := toDecimal(y)
+	return dx.Add(dy).String()
 }
 
-func decimalSub(x, y string) (string, error) {
-	dx, err := decimal.NewFromString(x)
-	if err != nil {
-		return "", err
-	}
-
-	dy, err := decimal.NewFromString(y)
-	if err != nil {
-		return "", err
-	}
-
-	return dx.Sub(dy).String(), nil
+func decimalSub(x, y any) string {
+	dx := toDecimal(x)
+	dy := toDecimal(y)
+	return dx.Sub(dy).String()
 }
 
-func decimalCmp(x, y string) (int, error) {
-	dx, err := decimal.NewFromString(x)
-	if err != nil {
-		return 0, err
-	}
+func decimalMul(x, y any) string {
+	dx := toDecimal(x)
+	dy := toDecimal(y)
+	return dx.Mul(dy).String()
+}
 
-	dy, err := decimal.NewFromString(y)
-	if err != nil {
-		return 0, err
-	}
-
-	if dx.LessThan(dy) {
-		return -1, nil
-	} else if dx.Equal(dy) {
-		return 0, nil
-	} else {
-		return 1, nil
-	}
+func decimalCmp(x, y any) int {
+	dx := toDecimal(x)
+	dy := toDecimal(y)
+	return dx.Cmp(dy)
 }

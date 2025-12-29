@@ -22,13 +22,13 @@ func newDriver() *sqlite.SQLiteDriver {
 			if err := conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("decimal", toDecimal, true); err != nil {
-				return err
-			}
 			if err := conn.RegisterFunc("decimal_add", decimalAdd, true); err != nil {
 				return err
 			}
 			if err := conn.RegisterFunc("decimal_sub", decimalSub, true); err != nil {
+				return err
+			}
+			if err := conn.RegisterFunc("decimal_mul", decimalMul, true); err != nil {
 				return err
 			}
 			if err := conn.RegisterFunc("decimal_cmp", decimalCmp, true); err != nil {
