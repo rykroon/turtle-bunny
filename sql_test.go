@@ -2,6 +2,7 @@ package turtlebunny
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
@@ -63,6 +64,15 @@ func TestUint128(t *testing.T) {
 	_, err = client.db.Exec(
 		insertAccountQuery,
 		"Hello World", "0", "0", "0", "0", 0, 1, 1, false, false,
+	)
+	if err == nil {
+		t.Errorf("expected error")
+	}
+
+	// overflow should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"999999999999999999999999999999999999999", "0", "0", "0", "0", 0, 1, 1, false, false,
 	)
 	if err == nil {
 		t.Errorf("expected error")
@@ -240,6 +250,7 @@ func TestCodeMustNotBeZero(t *testing.T) {
 }
 
 func TestAccountUpdate(t *testing.T) {
+	os.Remove("./test.db")
 	client, err := NewClient("test.db")
 	if err != nil {
 		t.Error(err)
