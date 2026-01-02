@@ -3,7 +3,6 @@ package turtlebunny
 import (
 	"database/sql"
 	_ "embed"
-	"regexp"
 	"slices"
 
 	sqlite "github.com/mattn/go-sqlite3"
@@ -19,19 +18,22 @@ type Client struct {
 func newDriver() *sqlite.SQLiteDriver {
 	return &sqlite.SQLiteDriver{
 		ConnectHook: func(conn *sqlite.SQLiteConn) error {
-			if err := conn.RegisterFunc("regexp", regexp.MatchString, true); err != nil {
+			if err := conn.RegisterFunc("is_uint128", isUint128, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("decimal_add", decimalAdd, true); err != nil {
+			if err := conn.RegisterFunc("is_uint64", isUint64, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("decimal_sub", decimalSub, true); err != nil {
+			if err := conn.RegisterFunc("uint_add", uintAdd, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("decimal_mul", decimalMul, true); err != nil {
+			if err := conn.RegisterFunc("uint_sub", uintSub, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("decimal_cmp", decimalCmp, true); err != nil {
+			if err := conn.RegisterFunc("uint_cmp", uintCmp, true); err != nil {
+				return err
+			}
+			if err := conn.RegisterFunc("unix_nano", unixNano, false); err != nil {
 				return err
 			}
 			if err := conn.RegisterFunc("unixepoch", unixEpoch, true); err != nil {
