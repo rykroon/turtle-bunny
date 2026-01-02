@@ -12,4 +12,4 @@ Because sqlite3 only supports 64-bit signed integers while Tiger Beetle supports
 - Turtle Bunny uses regexp() and decimal_cmp() to enforce the text field can only be set
     as a valid unsigned 64 or 128 bit integer.
 
-Turtle Bunny does not support two-phase trasactions.
+Turtle Bunny does not support two-phase transactions.

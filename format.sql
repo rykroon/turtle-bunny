@@ -73,11 +73,15 @@ BEGIN
             (OLD.debits_must_not_exceed_credits != NEW.debits_must_not_exceed_credits) OR
             (OLD.credits_must_not_exceed_debits != NEW.credits_must_not_exceed_debits) OR
             (OLD.timestamp != NEW.timestamp)
-        THEN RAISE(ABORT, "account_cannot_be_modified")
+            THEN RAISE(ABORT, "account_cannot_be_modified")
+        WHEN decimal_cmp(NEW.debits_posted, '340282366920938463463374607431768211455') = 1
+            THEN RAISE(ABORT, "overflows_debits_posted")
+        WHEN decimal_cmp(NEW.credits_posted, '340282366920938463463374607431768211455') = 1
+            THEN RAISE(ABORT, "overflows_credits_posted")
         WHEN NEW.debits_must_not_exceed_credits AND NEW.debits_posted > NEW.credits_posted
-        THEN RAISE(ABORT, "exceeds_credits")
+            THEN RAISE(ABORT, "exceeds_credits")
         WHEN NEW.credits_must_not_exceed_debits AND NEW.credits_posted > NEW.debits_posted
-        THEN RAISE(ABORT, "exceeds_debits")
+            THEN RAISE(ABORT, "exceeds_debits")
     END;
 END;
 
@@ -118,7 +122,6 @@ CREATE TABLE IF NOT EXISTS transfers (
     timestamp TEXT NOT NULL UNIQUE CHECK (
         timestamp REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(timestamp, '18446744073709551615') IN (-1, 0)
-        -- make sure timestamp is less than or equal to current time
     ),
     FOREIGN KEY (debit_account_id) REFERENCES accounts(id),
     FOREIGN KEY (credit_account_id) REFERENCES accounts(id)
@@ -129,38 +132,29 @@ CREATE TRIGGER IF NOT EXISTS before_create_transfer BEFORE INSERT ON transfers
 BEGIN
     SELECT
     CASE
+        WHEN decimal_cmp(NEW.timestamp, decimal_mul(unixepoch('subsec'), 1000000)) = 1
+            THEN RAISE(ABORT, "timestamp_must_not_advance")
         WHEN NEW.id = '0' THEN RAISE(ABORT, "id_must_not_be_zero")
-
         WHEN NEW.id = '340282366920938463463374607431768211455'
             THEN RAISE(ABORT, "id_must_not_be_int_max")
-
         WHEN NEW.debit_account_id = '0'
             THEN RAISE(ABORT, "debit_account_id_must_not_be_zero")
-        
         WHEN NEW.debit_account_id = '340282366920938463463374607431768211455'
             THEN RAISE(ABORT, "debit_account_id_must_not_be_int_max")
-
         WHEN NEW.credit_account_id = '0'
             THEN RAISE(ABORT, "credit_account_id_must_not_be_zero")
-        
         WHEN NEW.credit_account_id = '340282366920938463463374607431768211455'
             THEN RAISE(ABORT, "credit_account_id_must_not_be_int_max")
-
         WHEN NEW.debit_account_id = NEW.credit_account_id
             THEN RAISE(ABORT, "accounts_must_be_different")
-
         WHEN NEW.ledger = 0 THEN RAISE(ABORT, "ledger_must_not_be_zero")
         WHEN NEW.code = 0 THEN RAISE(ABORT, "code_must_not_be_zero")
-
         WHEN (SELECT id FROM accounts WHERE id = NEW.debit_account_id) IS NULL
             THEN RAISE(ABORT, "debit_account_not_found")
-
         WHEN (SELECT id FROM accounts WHERE id = NEW.credit_account_id) IS NULL
             THEN RAISE(ABORT, "credit_account_not_found")
-
         WHEN (SELECT ledger FROM accounts WHERE id = NEW.debit_account_id) != NEW.ledger
             THEN RAISE(ABORT, 'transfer_must_have_the_same_ledger_as_accounts')
-
         WHEN (SELECT ledger FROM accounts WHERE id = NEW.credit_account_id) != NEW.ledger
             THEN RAISE(ABORT, 'accounts_must_have_the_same_ledger')
     END;
