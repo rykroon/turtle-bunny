@@ -3,6 +3,7 @@ package turtlebunny
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"lukechampine.com/uint128"
 )
@@ -36,18 +37,23 @@ func (c *Client) CreateAccount(params CreateAccountParams) error {
 	_, err := c.db.Exec(`
 		INSERT INTO accounts (
 			id,
+			debits_posted,
+			credits_posted,
 			user_data_128,
 			user_data_64,
 			user_data_32,
 			ledger,
 			code,
 			debits_must_not_exceed_credits,
-			credits_must_not_exceed_debits
+			credits_must_not_exceed_debits,
+			timestamp
 		)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		params.Id.String(),
+		0,
+		0,
 		params.UserData128.String(),
 		params.UserData64,
 		params.UserData32,
@@ -55,6 +61,7 @@ func (c *Client) CreateAccount(params CreateAccountParams) error {
 		params.Code,
 		params.DebitsMustNotExceedCredits,
 		params.CreditsMustNotExceedDebits,
+		time.Now().UnixNano(),
 	)
 
 	if err != nil {
@@ -76,6 +83,9 @@ func (c *Client) LookupAccounts(ids ...uint128.Uint128) ([]*Account, error) {
 			id,
 			debits_posted,
 			credits_posted,
+			user_data_128,
+			user_data_64,
+			user_data_32,
 			ledger,
 			code,
 			debits_must_not_exceed_credits,
@@ -98,6 +108,9 @@ func (c *Client) LookupAccounts(ids ...uint128.Uint128) ([]*Account, error) {
 			NewScannableUint128(&account.Id),
 			NewScannableUint128(&account.DebitsPosted),
 			NewScannableUint128(&account.CreditsPosted),
+			NewScannableUint128(&account.UserData128),
+			&account.UserData64,
+			&account.UserData32,
 			&account.Ledger,
 			&account.Code,
 			&account.DebitsMustNotExceedCredits,

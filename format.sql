@@ -3,11 +3,11 @@ CREATE TABLE IF NOT EXISTS accounts (
         id REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(id, '340282366920938463463374607431768211455') IN (-1, 0)
     ),
-    debits_posted TEXT NOT NULL DEFAULT 0 CHECK (
+    debits_posted TEXT NOT NULL CHECK (
         debits_posted REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(debits_posted, '340282366920938463463374607431768211455') IN (-1, 0)
     ),
-    credits_posted TEXT NOT NULL DEFAULT 0 CHECK (
+    credits_posted TEXT NOT NULL CHECK (
         credits_posted REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(credits_posted, '340282366920938463463374607431768211455') IN (-1, 0)
     ),
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     code INTEGER NOT NULL CHECK (code BETWEEN 0 AND 65535),
     debits_must_not_exceed_credits INTEGER NOT NULL CHECK (debits_must_not_exceed_credits IN (0,1)),
     credits_must_not_exceed_debits INTEGER NOT NULL CHECK (credits_must_not_exceed_debits IN (0,1)),
-    timestamp TEXT NOT NULL UNIQUE DEFAULT ((decimal_mul(unixepoch('subsec'), 1000000))) CHECK (
+    timestamp TEXT NOT NULL UNIQUE CHECK (
         timestamp REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(timestamp, '18446744073709551615') IN (-1, 0)
         -- make sure timestamp is less than or equal to current time
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS transfers (
     user_data_32 INTEGER NOT NULL CHECK (user_data_32 BETWEEN 0 AND 4294967295),
     ledger INTEGER NOT NULL CHECK (ledger BETWEEN 0 AND 4294967295),
     code INTEGER NOT NULL CHECK (code BETWEEN 0 AND 65535),
-    timestamp TEXT NOT NULL UNIQUE DEFAULT (decimal_mul(unixepoch('subsec'), 1000000)) CHECK (
+    timestamp TEXT NOT NULL UNIQUE CHECK (
         timestamp REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(timestamp, '18446744073709551615') IN (-1, 0)
         -- make sure timestamp is less than or equal to current time

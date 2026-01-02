@@ -3,6 +3,7 @@ package turtlebunny
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"lukechampine.com/uint128"
 )
@@ -30,10 +31,11 @@ func (c *Client) CreateTransfer(params CreateTransferParams) error {
 			user_data_64,
 			user_data_32,
 			ledger,
-			code
+			code,
+			timestamp
 		)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		params.Id.String(),
 		params.DebitAccountId.String(),
@@ -44,6 +46,7 @@ func (c *Client) CreateTransfer(params CreateTransferParams) error {
 		params.UserData32,
 		params.Ledger,
 		params.Code,
+		time.Now().UnixNano(),
 	)
 
 	if err != nil {
