@@ -2,19 +2,34 @@ package turtlebunny
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
 	"lukechampine.com/uint128"
 )
 
-func uintAdd(x, y string) (string, error) {
-	ux, err := uint128.FromString(x)
+func toUint(v any) (uint128.Uint128, error) {
+	switch x := v.(type) {
+	case string:
+		return uint128.FromString(x)
+	case int64:
+		if x < 0 {
+			return uint128.Zero, fmt.Errorf("cannot convert negative int64 (%d) to uint64", x)
+		}
+		return uint128.From64(uint64(x)), nil
+	default:
+		return uint128.Zero, fmt.Errorf("cannot convert %v of type %T to uint128", x, x)
+	}
+}
+
+func uintAdd(x, y any) (string, error) {
+	ux, err := toUint(x)
 	if err != nil {
 		return "", err
 	}
 
-	uy, err := uint128.FromString(y)
+	uy, err := toUint(y)
 	if err != nil {
 		return "", err
 	}
@@ -22,13 +37,13 @@ func uintAdd(x, y string) (string, error) {
 	return ux.Add(uy).String(), nil
 }
 
-func uintSub(x, y string) (string, error) {
-	ux, err := uint128.FromString(x)
+func uintSub(x, y any) (string, error) {
+	ux, err := toUint(x)
 	if err != nil {
 		return "", err
 	}
 
-	uy, err := uint128.FromString(y)
+	uy, err := toUint(y)
 	if err != nil {
 		return "", err
 	}
@@ -36,13 +51,13 @@ func uintSub(x, y string) (string, error) {
 	return ux.Sub(uy).String(), nil
 }
 
-func uintCmp(x, y string) (int, error) {
-	ux, err := uint128.FromString(x)
+func uintCmp(x, y any) (int, error) {
+	ux, err := toUint(x)
 	if err != nil {
 		return 0, err
 	}
 
-	uy, err := uint128.FromString(y)
+	uy, err := toUint(y)
 	if err != nil {
 		return 0, err
 	}
