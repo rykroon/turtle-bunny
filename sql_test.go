@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 )
 
 const insertAccountQuery string = `
@@ -17,8 +18,9 @@ const insertAccountQuery string = `
 		ledger,
 		code,
 		debits_must_not_exceed_credits,
-		credits_must_not_exceed_debits
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		credits_must_not_exceed_debits,
+		timestamp
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 func TestUint128(t *testing.T) {
@@ -36,46 +38,64 @@ func TestUint128(t *testing.T) {
 	// negative integer should fail
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"-123", "0", "0", "0", "0", 0, 1, 1, false, false,
+		"-123", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
-		t.Errorf("expected error")
+		t.Errorf("expected negative integer to fail")
 	}
 
 	// decimal should fail
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"1.23", "0", "0", "0", "0", 0, 1, 1, false, false,
+		"1.23", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
-		t.Errorf("expected error")
+		t.Errorf("expected decimal to fail")
 	}
 
 	// leading zeros should fail
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"0123", "0", "0", "0", "0", 0, 1, 1, false, false,
+		"0123", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
-		t.Errorf("expected error")
+		t.Errorf("expected leading zeros to fail")
+	}
+
+	// leading spaces should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"   123", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected leading spaces to fail")
+	}
+
+	// trailing spaces should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"   123", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected trailing spaces to fail")
 	}
 
 	// non numeric should fail
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"Hello World", "0", "0", "0", "0", 0, 1, 1, false, false,
+		"Hello World", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
-		t.Errorf("expected error")
+		t.Errorf("expected non-numeric to fail")
 	}
 
 	// overflow should fail
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"999999999999999999999999999999999999999", "0", "0", "0", "0", 0, 1, 1, false, false,
+		"999999999999999999999999999999999999999", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
-		t.Errorf("expected error")
+		t.Errorf("expected overflow to fail")
 	}
 }
 
@@ -94,7 +114,7 @@ func TestIdMustNotBeZero(t *testing.T) {
 	// negative integer should fail
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"0", "0", "0", "0", "0", 0, 1, 1, false, false,
+		"0", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
 		t.Errorf("expected error")
@@ -119,7 +139,7 @@ func TestIdMustNotBeIntMax(t *testing.T) {
 
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"340282366920938463463374607431768211455", "0", "0", "0", "0", 1, 1, 1, false, false,
+		"340282366920938463463374607431768211455", "0", "0", "0", "0", 1, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
 		t.Errorf("expected error")
@@ -144,7 +164,7 @@ func TestFlagsAreMutuallyExclusive(t *testing.T) {
 
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"1", "0", "0", "0", "0", 1, 1, 1, true, true,
+		"1", "0", "0", "0", "0", 1, 1, 1, true, true, time.Now().UnixNano(),
 	)
 	if err == nil {
 		t.Errorf("expected error")
@@ -169,7 +189,7 @@ func TestDebitsPostedMustBeZero(t *testing.T) {
 
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"1", "100", "0", "0", "0", 1, 1, 1, false, false,
+		"1", "100", "0", "0", "0", 1, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
 		t.Errorf("expected error")
@@ -194,7 +214,7 @@ func TestCreditsPostedMustBeZero(t *testing.T) {
 
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"1", "0", "100", "0", "0", 0, 1, 1, false, false,
+		"1", "0", "100", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
 	)
 	if err == nil {
 		t.Errorf("expected error")
@@ -219,7 +239,7 @@ func TestLedgerMustNotBeZero(t *testing.T) {
 
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"1", "0", "0", "0", "0", 0, 0, 1, false, false,
+		"1", "0", "0", "0", "0", 0, 0, 1, false, false, time.Now().UnixNano(),
 	)
 
 	if err.Error() != "ledger_must_not_be_zero" {
@@ -241,7 +261,7 @@ func TestCodeMustNotBeZero(t *testing.T) {
 
 	_, err = client.db.Exec(
 		insertAccountQuery,
-		"1", "0", "0", "0", "0", 0, 1, 0, false, false,
+		"1", "0", "0", "0", "0", 0, 1, 0, false, false, time.Now().UnixNano(),
 	)
 
 	if err.Error() != "code_must_not_be_zero" {
@@ -273,9 +293,10 @@ func TestAccountUpdate(t *testing.T) {
 			ledger,
 			code,
 			debits_must_not_exceed_credits,
-			credits_must_not_exceed_debits
-		) VALUES (1, 0, 0, 0, 0, 0, 1, 1, false, false)
-	`)
+			credits_must_not_exceed_debits,
+			timestamp
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, 1, 0, 0, 0, 0, 0, 1, 1, false, false, time.Now().UnixNano())
 
 	if err != nil {
 		t.Error(err)
