@@ -33,7 +33,7 @@ BEGIN
             THEN RAISE(ABORT, "flags_are_mutually_exclusive")
         WHEN uint_cmp(NEW.timestamp, unix_nano()) = 1
             THEN RAISE(ABORT, "timestamp_must_not_advance")
-        WHEN uint_cmp(NEW.timestamp, COALESCE((SELECT timestamp FROM accounts ORDER BY timestamp DESC LIMIT 1), '0')) = -1
+        WHEN uint_cmp(NEW.timestamp, COALESCE((SELECT timestamp FROM accounts ORDER BY timestamp DESC LIMIT 1), 0)) = -1
             THEN RAISE(ABORT, "timestamp_must_not_regress")
     END;
 END;
@@ -128,7 +128,7 @@ BEGIN
         WHEN uint_cmp(NEW.timestamp, unix_nano()) = 1
             THEN RAISE(ABORT, "timestamp_must_not_advance")
 
-        WHEN uint_cmp(NEW.timestamp, (SELECT timestamp FROM transfers ORDER BY timestamp DESC LIMIT 1)) = -1
+        WHEN uint_cmp(NEW.timestamp, COALESCE((SELECT timestamp FROM transfers ORDER BY timestamp DESC LIMIT 1), 0)) = -1
             THEN RAISE(ABORT, "timestamp_must_not_regress")
     END;
 END;
