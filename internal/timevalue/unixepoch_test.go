@@ -1,4 +1,4 @@
-package unixepoch
+package timevalue
 
 import (
 	"database/sql"
@@ -67,6 +67,12 @@ func TestUnixEpochOneArgs(t *testing.T) {
 		{"Subsecond", "subsecond"},
 		{"Date", "2025-01-01"},
 		{"DateTime", "2025-01-01 12:00:00"},
+		{"DateTimeSubSec", "2025-01-01 12:00:00.123456"},
+		{"Hour-Min", "12:30"},
+		{"Time", "12:30:00"},
+		{"TimeSubSec", "12:30:00.123456"},
+		{"integer", 0},
+		{"float", 1.23},
 	}
 
 	for _, tc := range testCases {

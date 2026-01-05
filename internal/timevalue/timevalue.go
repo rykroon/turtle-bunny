@@ -1,10 +1,8 @@
-package unixepoch
+package timevalue
 
 import (
 	"errors"
 	"fmt"
-	"math"
-	"slices"
 	"strconv"
 	"time"
 )
@@ -19,13 +17,12 @@ func Now() TimeValue {
 	return TimeValue(time.Now())
 }
 
-func NewFromString(s string, mods Modifiers) (TimeValue, error) {
+func NewFromString(s string, mods ...string) (TimeValue, error) {
 	if s == "now" {
-		tv := TimeValue(time.Now())
-		return tv, nil
+		return Now(), nil
 	}
 
-	layouts := []string{
+	dateLayouts := []string{
 		"2006-01-02",
 		"2006-01-02 15:04",
 		"2006-01-02 15:04:05",
@@ -33,15 +30,28 @@ func NewFromString(s string, mods Modifiers) (TimeValue, error) {
 		"2006-01-02T15:04",
 		"2006-01-02T15:04:05",
 		"2006-01-02T15:04:05.999999999",
-		// "15:04"
-		// "15:04:05"
-		// "15:04:05.999999999"
 	}
 
-	for _, layout := range layouts {
-		tv, err := time.Parse(layout, s)
+	for _, layout := range dateLayouts {
+		t, err := time.Parse(layout, s)
 		if err == nil {
-			return TimeValue(tv), nil
+			return TimeValue(t), nil
+		}
+	}
+
+	timeLayouts := []string{
+		"15:04",
+		"15:04:05",
+		"15:04:05.999999999",
+	}
+
+	for _, layout := range timeLayouts {
+		t, err := time.Parse(layout, s)
+		if err == nil {
+			// https://sqlite.org/lang_datefunc.html#tmval
+			// Formats 8 through 10 that specify only a time assume a date of 2000-01-01
+			y2k := time.Date(2000, 1, 1, t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
+			return TimeValue(y2k), nil
 		}
 	}
 
@@ -50,7 +60,7 @@ func NewFromString(s string, mods Modifiers) (TimeValue, error) {
 		return zero, err
 	}
 
-	tv, err := NewFromFloat(f, mods)
+	tv, err := NewFromFloat(f, mods...)
 	if err != nil {
 		return zero, err
 	}
@@ -58,9 +68,10 @@ func NewFromString(s string, mods Modifiers) (TimeValue, error) {
 	return tv, nil
 }
 
-func NewFromFloat(f float64, mods Modifiers) (TimeValue, error) {
-	auto := mods.Auto()
-	unixepoch := mods.UnixEpoch()
+func NewFromFloat(f float64, mods ...string) (TimeValue, error) {
+	modifiers := Modifiers(mods)
+	auto := modifiers.Auto()
+	unixepoch := modifiers.UnixEpoch()
 
 	if auto && unixepoch {
 		return zero, errors.New("cannot specify both 'auto' and 'unixepoch'")
@@ -68,26 +79,19 @@ func NewFromFloat(f float64, mods Modifiers) (TimeValue, error) {
 
 	julianday := !auto && !unixepoch
 
-	if auto {
-		if 0 <= f && f <= 5373484.499999 {
-			julianday = true
-		} else if -210866760000 <= f && f <= 253402300799 {
-			unixepoch = true
-		}
-	}
-
-	if !julianday && !unixepoch {
-		return zero, errors.New("invalid range")
-	}
+	var numMod NumberModifier
 
 	if julianday {
-		f = julianDaystoUnixSecs(f)
+		numMod = JulianDayMod
+	} else if auto {
+		numMod = AutoMod
+	} else if unixepoch {
+		numMod = UnixEpochMod
+	} else {
+		return zero, errors.New("")
 	}
 
-	sec := int64(math.Floor(f))
-	frac := f - float64(sec)
-	nsec := int64(math.Round(frac * 1e9))
-	return TimeValue(time.Unix(sec, nsec)), nil
+	return numMod(f)
 }
 
 func (tv TimeValue) Date() string {
@@ -117,91 +121,4 @@ func (tv TimeValue) UnixEpoch(subsec bool) any {
 		return time.Time(tv).Unix()
 	}
 	return float64(time.Time(tv).UnixNano()) / 1_000_000_000
-}
-
-func julianDaystoUnixSecs(julianDays float64) float64 {
-	return (julianDays - 2440587.5) * 86400
-}
-
-func unixSecsToJulianDay(unixSecs float64) float64 {
-	return unixSecs/86400 + 2440587.5
-}
-
-func resolveArgs(args []any) (any, []string, error) {
-	if len(args) == 0 {
-		return "now", []string{}, nil
-	}
-
-	timeValue := args[0]
-	modifiers, err := anySliceToStringSlice(args[1:])
-	if err != nil {
-		return "", []string{}, err
-	}
-
-	s, ok := timeValue.(string)
-	if ok && (s == "subsec" || s == "subsecond") {
-		// if the first arg is subsec then append to to modifiers
-		// and set the time value to now
-		timeValue = "now"
-		modifiers = append(modifiers, s)
-	}
-
-	return timeValue, modifiers, nil
-}
-
-func UnixEpoch(args ...any) (any, error) {
-	tv, mods, err := resolveArgs(args)
-	if err != nil {
-		return nil, err
-	}
-
-	var timeValue TimeValue
-	modifiers := Modifiers(mods)
-	subsec := modifiers.SubSec()
-
-	switch tvTyped := tv.(type) {
-	case string:
-		timeValue, err = NewFromString(tvTyped, modifiers)
-		if err != nil {
-			return nil, err
-		}
-	case int64:
-		timeValue, err = NewFromFloat(float64(tvTyped), modifiers)
-	case float64:
-		timeValue, err = NewFromFloat(tvTyped, modifiers)
-	}
-
-	return timeValue.UnixEpoch(subsec), nil
-}
-
-type Modifiers []string
-
-func (m Modifiers) SubSec() bool {
-	return slices.ContainsFunc(m, func(mod string) bool {
-		return mod == "subsec" || mod == "subsecond"
-	})
-}
-
-func (m Modifiers) Auto() bool {
-	return slices.Contains(m, "auto")
-}
-
-func (m Modifiers) UnixEpoch() bool {
-	return slices.Contains(m, "unixepoch")
-}
-
-func (m Modifiers) JulianDay() bool {
-	return slices.Contains(m, "julianday")
-}
-
-func anySliceToStringSlice(a []any) ([]string, error) {
-	s := make([]string, len(a))
-	for i, v := range a {
-		str, ok := v.(string)
-		if !ok {
-			return nil, fmt.Errorf("element %d is not a string (type %T)", i, v)
-		}
-		s[i] = str
-	}
-	return s, nil
 }
