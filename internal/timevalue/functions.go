@@ -39,10 +39,10 @@ func anySliceToStringSlice(a []any) ([]string, error) {
 	return s, nil
 }
 
-func UnixEpoch(args ...any) (any, error) {
+func UnixEpoch(args ...any) any {
 	tv, mods, err := resolveArgs(args)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	var timeValue TimeValue
@@ -51,16 +51,16 @@ func UnixEpoch(args ...any) (any, error) {
 	case string:
 		timeValue, err = NewFromString(tvTyped, mods...)
 		if err != nil {
-			return nil, err
+			return nil
 		}
 	case int64:
 		timeValue, err = NewFromFloat(float64(tvTyped), mods...)
 	case float64:
 		timeValue, err = NewFromFloat(tvTyped, mods...)
 	default:
-		return nil, fmt.Errorf("invalid type %T for time-value", tvTyped)
+		return nil
 	}
 
 	subsec := Modifiers(mods).SubSec()
-	return timeValue.UnixEpoch(subsec), nil
+	return timeValue.UnixEpoch(subsec)
 }

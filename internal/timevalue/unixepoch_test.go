@@ -73,21 +73,27 @@ func TestUnixEpochOneArgs(t *testing.T) {
 		{"TimeSubSec", "12:30:00.123456"},
 		{"integer", 0},
 		{"float", 1.23},
+		{"not valid", "Hello World"},
 	}
 
 	for _, tc := range testCases {
-		var r1, r2 float64
-		err := stmt.QueryRow(tc.Arg, tc.Arg).Scan(&r1, &r2)
-		if err != nil {
-			t.Error(err)
-		}
-
 		if tc.Arg == "subsec" || tc.Arg == "subsecond" {
+			var r1, r2 float64
+			err := stmt.QueryRow(tc.Arg, tc.Arg).Scan(&r1, &r2)
+			if err != nil {
+				t.Error(err)
+			}
+
 			diff := math.Abs(r1 - r2)
 			if diff > .001 {
 				t.Errorf("test %s failed: r1=%v, r2=%v, diff=%v", tc.Name, r1, r2, diff)
 			}
 		} else {
+			var r1, r2 any
+			err := stmt.QueryRow(tc.Arg, tc.Arg).Scan(&r1, &r2)
+			if err != nil {
+				t.Error(err)
+			}
 			if r1 != r2 {
 				t.Errorf("test %s failed: r1=%v, r2=%v", tc.Name, r1, r2)
 			}
