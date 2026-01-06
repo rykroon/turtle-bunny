@@ -8,7 +8,7 @@ func resolveArgs(args []any) (any, []string, error) {
 	}
 
 	timeValue := args[0]
-	modifiers, err := anySliceToStringSlice(args[1:])
+	modifiers, err := anySliceToTypedSlice[string](args[1:])
 	if err != nil {
 		return "", []string{}, err
 	}
@@ -27,12 +27,12 @@ func resolveArgs(args []any) (any, []string, error) {
 	return timeValue, modifiers, nil
 }
 
-func anySliceToStringSlice(a []any) ([]string, error) {
-	s := make([]string, len(a))
+func anySliceToTypedSlice[T any](a []any) ([]T, error) {
+	s := make([]T, len(a))
 	for i, v := range a {
-		str, ok := v.(string)
+		str, ok := v.(T)
 		if !ok {
-			return nil, fmt.Errorf("element %d is not a string (type %T)", i, v)
+			return nil, fmt.Errorf("element %d is not a %T (type %T)", i, new(T), v)
 		}
 		s[i] = str
 	}
@@ -55,8 +55,14 @@ func UnixEpoch(args ...any) any {
 		}
 	case int64:
 		timeValue, err = NewFromFloat(float64(tvTyped), mods...)
+		if err != nil {
+			return nil
+		}
 	case float64:
 		timeValue, err = NewFromFloat(tvTyped, mods...)
+		if err != nil {
+			return nil
+		}
 	default:
 		return nil
 	}
