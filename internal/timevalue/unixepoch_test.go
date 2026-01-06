@@ -67,10 +67,10 @@ func TestUnixEpochOneArgs(t *testing.T) {
 		{"Subsecond", "subsecond"},
 		{"Date", "2025-01-01"},
 		{"DateTime", "2025-01-01 12:00:00"},
-		{"DateTimeSubSec", "2025-01-01 12:00:00.123456"},
+		{"DateTimeFrac", "2025-01-01 12:00:00.123456"},
 		{"Hour-Min", "12:30"},
 		{"Time", "12:30:00"},
-		{"TimeSubSec", "12:30:00.123456"},
+		{"TimeFrac", "12:30:00.123456"},
 		{"integer", 0},
 		{"float", 1.23},
 		{"not valid", "Hello World"},
@@ -91,6 +91,66 @@ func TestUnixEpochOneArgs(t *testing.T) {
 		} else {
 			var r1, r2 any
 			err := stmt.QueryRow(tc.Arg, tc.Arg).Scan(&r1, &r2)
+			if err != nil {
+				t.Error(err)
+			}
+			if r1 != r2 {
+				t.Errorf("test %s failed: r1=%v, r2=%v", tc.Name, r1, r2)
+			}
+		}
+	}
+}
+
+func TestUnixEpochTwoArgs(t *testing.T) {
+	db, err := newClient()
+	if err != nil {
+		t.Error(err)
+	}
+
+	stmt, err := db.Prepare("SELECT unixepoch(?, ?), unixepoch_custom(?, ?)")
+	if err != nil {
+		t.Error(err)
+	}
+
+	testCases := []struct {
+		Name string
+		Args [2]any
+	}{
+		{"Now-Subsec", [2]any{"now", "subsec"}},
+		{"Now-Subsecond", [2]any{"now", "subsecond"}},
+		{"Date-Subsec", [2]any{"2025-01-01", "subsec"}},
+		{"Date-Subsecond", [2]any{"2025-01-01", "subsecond"}},
+		{"DateTime-Subsec", [2]any{"2025-01-01 12:00:00", "subsec"}},
+		{"DateTime-Subsec", [2]any{"2025-01-01 12:00:00", "subsecond"}},
+		{"DateTimeFrac-Subsec", [2]any{"2025-01-01 12:00:00.123456", "subsec"}},
+		{"DateTimeFrac-Subsecond", [2]any{"2025-01-01 12:00:00.123456", "subsecond"}},
+		{"Hour-Min-Subsec", [2]any{"12:30", "subsec"}},
+		{"Hour-Min-Subsecond", [2]any{"12:30", "subsecond"}},
+		{"Time-Subsec", [2]any{"12:30:00", "subsec"}},
+		{"Time-Subsecond", [2]any{"12:30:00", "subsecond"}},
+		{"TimeFrac-Subsec", [2]any{"12:30:00.123456", "subsec"}},
+		{"TimeFrac-Subsecond", [2]any{"12:30:00.123456", "subsecond"}},
+		{"Zero-Unixepoch", [2]any{0, "unixepoch"}},
+		{"Zero-Auto", [2]any{0, "auto"}},
+		{"not valid", [2]any{"Hello", "World"}},
+	}
+
+	for _, tc := range testCases {
+
+		if slices.Contains(tc.Args[:], "subsec") || slices.Contains(tc.Args[:], "subsecond") {
+			var r1, r2 float64
+			err := stmt.QueryRow(tc.Args[0], tc.Args[1], tc.Args[0], tc.Args[1]).Scan(&r1, &r2)
+			if err != nil {
+				t.Error(err)
+			}
+
+			diff := math.Abs(r1 - r2)
+			if diff > .001 {
+				t.Errorf("test %s failed: r1=%v, r2=%v, diff=%v", tc.Name, r1, r2, diff)
+			}
+		} else {
+			var r1, r2 any
+			err := stmt.QueryRow(tc.Args[0], tc.Args[1], tc.Args[0], tc.Args[1]).Scan(&r1, &r2)
 			if err != nil {
 				t.Error(err)
 			}
