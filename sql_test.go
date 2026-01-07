@@ -296,7 +296,7 @@ func TestAccountUpdate(t *testing.T) {
 			credits_must_not_exceed_debits,
 			timestamp
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, 1, 0, 0, 0, 0, 0, 1, 1, false, false, time.Now().UnixNano())
+	`, 1, 0, 0, 0, 0, 0, 1, 1, false, false, time.Now().UnixMilli()) // change to UnixNano once nano seconds are supported.
 
 	if err != nil {
 		t.Error(err)

@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS accounts (
     timestamp TEXT NOT NULL UNIQUE CHECK (
         timestamp REGEXP '^(0|[1-9][0-9]*)$' AND
         decimal_cmp(timestamp, '18446744073709551615') IN (-1, 0)
-        -- make sure timestamp is less than or equal to current time
     )
 ) STRICT, WITHOUT ROWID;
 
@@ -40,8 +39,6 @@ BEGIN
             THEN RAISE(ABORT, "id_must_not_be_zero")
         WHEN NEW.id = '340282366920938463463374607431768211455'
             THEN RAISE(ABORT, "id_must_not_be_int_max")
-        WHEN NEW.debits_must_not_exceed_credits AND NEW.credits_must_not_exceed_debits
-            THEN RAISE(ABORT, "flags_are_mutually_exclusive")
         WHEN NEW.debits_posted != '0'
             THEN RAISE(ABORT, "debits_posted_must_be_zero")
         WHEN NEW.credits_posted != '0'
@@ -50,6 +47,15 @@ BEGIN
             THEN RAISE(ABORT, "ledger_must_not_be_zero")
         WHEN NEW.code = 0
             THEN RAISE(ABORT, "code_must_not_be_zero")
+        WHEN NEW.debits_must_not_exceed_credits AND NEW.credits_must_not_exceed_debits
+            THEN RAISE(ABORT, "flags_are_mutually_exclusive")
+        WHEN decimal_cmp(NEW.timestamp, (SELECT now from unixnano)) = 1
+            THEN RAISE(ABORT, "timestamp_must_not_advance")
+        WHEN (
+            decimal_cmp(NEW.timestamp, (SELECT timestamp FROM last_account_timestamp)) = -1 OR
+            (SELECT NEW.timestamp IN (SELECT timestamp FROM transfers))
+        )
+            THEN RAISE(ABORT, "timestamp_must_not_regress")
     END;
 END;
 
@@ -181,3 +187,12 @@ CREATE TRIGGER IF NOT EXISTS prevent_delete_on_transfers BEFORE DELETE ON transf
 BEGIN
     SELECT CASE WHEN true THEN RAISE(ABORT, "transfers_cannot_be_deleted") END;
 END;
+
+CREATE VIEW IF NOT EXISTS unixnano AS
+    SELECT decimal_mul(unixepoch('subsec'), 1000000000) AS now;
+
+CREATE VIEW IF NOT EXISTS last_account_timestamp AS
+    SELECT COALESCE(timestamp, 0) AS timestamp from accounts ORDER BY timestamp DESC LIMIT 1;
+
+CREATE VIEW IF NOT EXISTS last_transfer_timestamp AS
+    SELECT COALESCE(timestamp, 0) AS timestamp from transfers ORDER BY timestamp DESC LIMIT 1;
