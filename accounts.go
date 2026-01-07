@@ -3,7 +3,6 @@ package turtlebunny
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"lukechampine.com/uint128"
 )
@@ -61,7 +60,7 @@ func (c *Client) CreateAccount(params CreateAccountParams) error {
 		params.Code,
 		params.DebitsMustNotExceedCredits,
 		params.CreditsMustNotExceedDebits,
-		time.Now().UnixNano(),
+		unixNano(),
 	)
 
 	if err != nil {
