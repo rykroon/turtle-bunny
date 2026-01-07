@@ -242,6 +242,10 @@ func TestLedgerMustNotBeZero(t *testing.T) {
 		"1", "0", "0", "0", "0", 0, 0, 1, false, false, time.Now().UnixNano(),
 	)
 
+	if err == nil {
+		t.Error("expected error")
+	}
+
 	if err.Error() != "ledger_must_not_be_zero" {
 		t.Errorf("expected %s, got %s", "ledger_must_not_be_zero", err.Error())
 	}
@@ -264,8 +268,73 @@ func TestCodeMustNotBeZero(t *testing.T) {
 		"1", "0", "0", "0", "0", 0, 1, 0, false, false, time.Now().UnixNano(),
 	)
 
+	if err == nil {
+		t.Error("expected error")
+	}
+
 	if err.Error() != "code_must_not_be_zero" {
 		t.Errorf("expected %s, got %s", "code_must_not_be_zero", err.Error())
+	}
+}
+
+func TestTimestampMustNotAdvance(t *testing.T) {
+	client, err := NewClient("test.db")
+	if err != nil {
+		t.Error(err)
+	}
+	defer client.Close()
+
+	err = client.Format()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"1", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano()+5e9,
+	)
+
+	if err == nil {
+		t.Error("expected error")
+	}
+
+	if err == nil || err.Error() != "timestamp_must_not_advance" {
+		t.Errorf("expected %s, got %s", "timestamp_must_not_advance", err.Error())
+	}
+}
+
+func TestTimestampMustNotRegress(t *testing.T) {
+	client, err := NewClient("test.db")
+	if err != nil {
+		t.Error(err)
+	}
+	defer client.Close()
+
+	err = client.Format()
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"2", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"3", "0", "0", "0", "0", 0, 1, 1, false, false, time.Now().UnixNano()-5e9,
+	)
+
+	if err == nil {
+		t.Error("expected error")
+	}
+
+	if err.Error() != "timestamp_must_not_regress" {
+		t.Errorf("expected %s, got %s", "timestamp_must_not_regress", err.Error())
 	}
 }
 
@@ -296,7 +365,7 @@ func TestAccountUpdate(t *testing.T) {
 			credits_must_not_exceed_debits,
 			timestamp
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, 1, 0, 0, 0, 0, 0, 1, 1, false, false, time.Now().UnixMilli()) // change to UnixNano once nano seconds are supported.
+	`, 1, 0, 0, 0, 0, 0, 1, 1, false, false, time.Now().UnixNano()) // change to UnixNano once nano seconds are supported.
 
 	if err != nil {
 		t.Error(err)
