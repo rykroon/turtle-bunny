@@ -99,6 +99,82 @@ func TestUint128(t *testing.T) {
 	}
 }
 
+func TestUint64(t *testing.T) {
+	client, err := NewClient("test.db")
+	if err != nil {
+		t.Error(err)
+	}
+	defer client.Close()
+
+	err = client.Format()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// negative integer should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"1", "0", "0", "0", "-123", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected negative integer to fail")
+	}
+
+	// decimal should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"2", "0", "0", "0", "1.23", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected decimal to fail")
+	}
+
+	// leading zeros should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"3", "0", "0", "0", "0123", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected leading zeros to fail")
+	}
+
+	// leading spaces should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"4", "0", "0", "0", "   123", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected leading spaces to fail")
+	}
+
+	// trailing spaces should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"5", "0", "0", "0", "123   ", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected trailing spaces to fail")
+	}
+
+	// non numeric should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"6", "0", "0", "0", "Hello World", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected non-numeric to fail")
+	}
+
+	// overflow should fail
+	_, err = client.db.Exec(
+		insertAccountQuery,
+		"7", "0", "0", "0", "99999999999999999999", 0, 1, 1, false, false, time.Now().UnixNano(),
+	)
+	if err == nil {
+		t.Errorf("expected overflow to fail")
+	}
+}
+
 func TestIdMustNotBeZero(t *testing.T) {
 	client, err := NewClient("test.db")
 	if err != nil {
