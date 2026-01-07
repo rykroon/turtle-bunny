@@ -33,10 +33,11 @@ func newDriver() *sqlite.SQLiteDriver {
 			if err := conn.RegisterFunc("uint_cmp", uintCmp, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("unix_nano", unixNano, false); err != nil {
+			if err := conn.RegisterFunc("get_uint128_max", getUint128Max, true); err != nil {
 				return err
 			}
-			if err := conn.RegisterFunc("unixepoch", unixEpoch, true); err != nil {
+
+			if err := conn.RegisterFunc("unix_nano", unixNano, false); err != nil {
 				return err
 			}
 			return nil

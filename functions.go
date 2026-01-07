@@ -3,15 +3,21 @@ package turtlebunny
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"time"
 
 	"lukechampine.com/uint128"
 )
 
+var uintPattern *regexp.Regexp = regexp.MustCompile("^(0|[1-9][0-9]*)$")
+
 func toUint(v any) (uint128.Uint128, error) {
 	switch x := v.(type) {
 	case string:
+		if !uintPattern.MatchString(x) {
+			return uint128.Zero, errors.New("not a valid unisgned integer")
+		}
 		return uint128.FromString(x)
 	case int64:
 		if x < 0 {
@@ -66,22 +72,25 @@ func uintCmp(x, y any) (int, error) {
 }
 
 func isUint128(s string) bool {
+	if !uintPattern.MatchString(s) {
+		return false
+	}
 	_, err := uint128.FromString(s)
 	return err == nil
 }
 
 func isUint64(s string) bool {
+	if !uintPattern.MatchString(s) {
+		return false
+	}
 	_, err := strconv.ParseUint(s, 10, 64)
 	return err == nil
 }
 
-func unixNano() string {
-	return strconv.Itoa(int(time.Now().UnixNano()))
+func getUint128Max() string {
+	return uint128.Max.String()
 }
 
-func unixEpoch(s string) (float64, error) {
-	if s != "subsec" && s != "subsecond" {
-		return 0, errors.New("arg not one of ('subsec', 'subsecond')")
-	}
-	return float64(time.Now().UnixNano()) / 1e9, nil
+func unixNano() int64 {
+	return time.Now().UnixNano()
 }

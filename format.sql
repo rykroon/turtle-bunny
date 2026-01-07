@@ -19,7 +19,7 @@ BEGIN
     CASE
         WHEN NEW.id = '0'
             THEN RAISE(ABORT, "id_must_not_be_zero")
-        WHEN NEW.id = '340282366920938463463374607431768211455'
+        WHEN NEW.id = get_uint128_max()
             THEN RAISE(ABORT, "id_must_not_be_int_max")
         WHEN NEW.debits_posted != '0'
             THEN RAISE(ABORT, "debits_posted_must_be_zero")
@@ -89,19 +89,19 @@ BEGIN
     CASE
         WHEN NEW.id = '0' THEN RAISE(ABORT, "id_must_not_be_zero")
 
-        WHEN NEW.id = '340282366920938463463374607431768211455'
+        WHEN NEW.id = get_uint128_max()
             THEN RAISE(ABORT, "id_must_not_be_int_max")
 
         WHEN NEW.debit_account_id = '0'
             THEN RAISE(ABORT, "debit_account_id_must_not_be_zero")
         
-        WHEN NEW.debit_account_id = '340282366920938463463374607431768211455'
+        WHEN NEW.debit_account_id = get_uint128_max()
             THEN RAISE(ABORT, "debit_account_id_must_not_be_int_max")
 
         WHEN NEW.credit_account_id = '0'
             THEN RAISE(ABORT, "credit_account_id_must_not_be_zero")
         
-        WHEN NEW.credit_account_id = '340282366920938463463374607431768211455'
+        WHEN NEW.credit_account_id = get_uint128_max()
             THEN RAISE(ABORT, "credit_account_id_must_not_be_int_max")
 
         WHEN NEW.debit_account_id = NEW.credit_account_id
@@ -154,9 +154,6 @@ CREATE TRIGGER IF NOT EXISTS prevent_delete_on_transfers BEFORE DELETE ON transf
 BEGIN
     SELECT CASE WHEN true THEN RAISE(ABORT, "transfers_cannot_be_deleted") END;
 END;
-
-CREATE VIEW IF NOT EXISTS unixnano AS
-    SELECT decimal_mul(unixepoch('subsec'), 1000000000) AS now;
 
 CREATE VIEW IF NOT EXISTS last_account_timestamp AS
     SELECT COALESCE(timestamp, 0) AS timestamp from accounts ORDER BY timestamp DESC LIMIT 1;
