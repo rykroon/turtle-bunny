@@ -1,6 +1,9 @@
 package turtlebunny
 
 import (
+	"errors"
+	"time"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -43,4 +46,11 @@ func decimalCmp(x, y any) int {
 	dx := toDecimal(x)
 	dy := toDecimal(y)
 	return dx.Cmp(dy)
+}
+
+func unixEpoch(s string) (float64, error) {
+	if s != "subsec" && s != "subsecond" {
+		return 0, errors.New("arg not one of ('subsec', 'subsecond')")
+	}
+	return float64(time.Now().UnixNano()) / 1e9, nil
 }

@@ -34,6 +34,9 @@ func newDriver() *sqlite.SQLiteDriver {
 			if err := conn.RegisterFunc("decimal_cmp", decimalCmp, true); err != nil {
 				return err
 			}
+			if err := conn.RegisterFunc("unixepoch", unixEpoch, true); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
