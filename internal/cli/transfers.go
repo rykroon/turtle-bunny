@@ -10,7 +10,7 @@ import (
 )
 
 func NewCreateTransferCmd() *cobra.Command {
-	params := turtlebunny.CreateTransferParams{}
+	params := turtlebunny.Transfer{}
 
 	cmd := &cobra.Command{
 		Use:   "create-transfer",
