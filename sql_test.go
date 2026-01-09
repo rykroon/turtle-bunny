@@ -2,14 +2,12 @@ package turtlebunny
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 )
 
 func TestAccountUpdate(t *testing.T) {
-	os.Remove("./test.db")
-	client, err := NewClient("test.db")
+	client, err := NewClient(":memory:")
 	if err != nil {
 		t.Error(err)
 	}
