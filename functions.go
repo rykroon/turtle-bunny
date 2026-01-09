@@ -91,6 +91,6 @@ func getUint128Max() string {
 	return uint128.Max.String()
 }
 
-func unixNano() int64 {
-	return time.Now().UnixNano()
+func unixNano() uint64 {
+	return uint64(time.Now().UnixNano())
 }
