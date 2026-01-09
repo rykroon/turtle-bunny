@@ -23,7 +23,7 @@ type Account struct {
 
 func (c *Client) CreateAccount(params Account) error {
 	if params.Timestamp == 0 {
-		params.Timestamp = uint64(unixNano())
+		params.Timestamp = unixNano()
 	}
 	_, err := c.db.Exec(`
 		INSERT INTO accounts (
