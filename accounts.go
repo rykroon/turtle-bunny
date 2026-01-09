@@ -52,7 +52,7 @@ func (c *Client) CreateAccount(params Account) error {
 		params.Code,
 		params.DebitsMustNotExceedCredits,
 		params.CreditsMustNotExceedDebits,
-		unixNano(),
+		params.Timestamp,
 	)
 
 	if err != nil {

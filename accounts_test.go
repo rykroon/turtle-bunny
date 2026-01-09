@@ -219,7 +219,7 @@ func TestTimestampMustNotAdvance(t *testing.T) {
 		Id:        uint128.From64(1),
 		Ledger:    1,
 		Code:      1,
-		Timestamp: uint64(unixNano()) + 5e9,
+		Timestamp: uint64(unixNano()) + 1e9,
 	}
 	err = client.CreateAccount(account)
 
@@ -259,7 +259,7 @@ func TestTimestampMustNotRegress(t *testing.T) {
 		Id:        uint128.From64(2),
 		Ledger:    1,
 		Code:      1,
-		Timestamp: uint64(unixNano()) - 5e9,
+		Timestamp: uint64(unixNano()) - 1e9,
 	}
 	err = client.CreateAccount(account2)
 
