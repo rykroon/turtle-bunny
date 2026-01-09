@@ -3,12 +3,11 @@ package turtlebunny
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"lukechampine.com/uint128"
 )
 
-type CreateTransferParams struct {
+type Transfer struct {
 	Id              uint128.Uint128
 	DebitAccountId  uint128.Uint128
 	CreditAccountId uint128.Uint128
@@ -18,9 +17,13 @@ type CreateTransferParams struct {
 	UserData32      uint32
 	Ledger          uint32
 	Code            uint16
+	Timestamp       uint64
 }
 
-func (c *Client) CreateTransfer(params CreateTransferParams) error {
+func (c *Client) CreateTransfer(params Transfer) error {
+	if params.Timestamp == 0 {
+		params.Timestamp = unixNano()
+	}
 	_, err := c.db.Exec(`
 		INSERT INTO transfers (
 			id,
@@ -46,26 +49,13 @@ func (c *Client) CreateTransfer(params CreateTransferParams) error {
 		params.UserData32,
 		params.Ledger,
 		params.Code,
-		time.Now().UnixNano(),
+		params.Timestamp,
 	)
 
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-type Transfer struct {
-	Id              uint128.Uint128
-	DebitAccountId  uint128.Uint128
-	CreditAccountId uint128.Uint128
-	Amount          uint128.Uint128
-	UserData128     uint128.Uint128
-	UserData64      uint64
-	UserData32      uint32
-	Ledger          uint32
-	Code            uint16
-	Timestamp       uint64
 }
 
 func (c *Client) LookupTransfers(ids ...uint128.Uint128) ([]*Transfer, error) {
