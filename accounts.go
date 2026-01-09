@@ -7,17 +7,6 @@ import (
 	"lukechampine.com/uint128"
 )
 
-type CreateAccountParams struct {
-	Id                         uint128.Uint128
-	UserData128                uint128.Uint128
-	UserData64                 uint64
-	UserData32                 uint32
-	Ledger                     uint32
-	Code                       uint16
-	DebitsMustNotExceedCredits bool
-	CreditsMustNotExceedDebits bool
-}
-
 type Account struct {
 	Id                         uint128.Uint128
 	DebitsPosted               uint128.Uint128
@@ -32,7 +21,10 @@ type Account struct {
 	Timestamp                  uint64
 }
 
-func (c *Client) CreateAccount(params CreateAccountParams) error {
+func (c *Client) CreateAccount(params Account) error {
+	if params.Timestamp == 0 {
+		params.Timestamp = uint64(unixNano())
+	}
 	_, err := c.db.Exec(`
 		INSERT INTO accounts (
 			id,
@@ -51,8 +43,8 @@ func (c *Client) CreateAccount(params CreateAccountParams) error {
 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		params.Id.String(),
-		0,
-		0,
+		params.DebitsPosted.String(),
+		params.CreditsPosted.String(),
 		params.UserData128.String(),
 		params.UserData64,
 		params.UserData32,

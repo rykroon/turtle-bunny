@@ -10,7 +10,7 @@ import (
 )
 
 func NewCreateAccountCmd() *cobra.Command {
-	params := turtlebunny.CreateAccountParams{}
+	account := turtlebunny.Account{}
 
 	cmd := &cobra.Command{
 		Use:   "create-account",
@@ -23,7 +23,7 @@ func NewCreateAccountCmd() *cobra.Command {
 				return err
 			}
 			defer client.Close()
-			err = client.CreateAccount(params)
+			err = client.CreateAccount(account)
 			if err != nil {
 				return err
 			}
@@ -31,18 +31,18 @@ func NewCreateAccountCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().VarP(NewUint128Flag(&params.Id), "id", "i", "id")
-	cmd.Flags().Uint32VarP(&params.Ledger, "ledger", "l", 0, "ledger")
-	cmd.Flags().Uint16VarP(&params.Code, "code", "c", 0, "code")
+	cmd.Flags().VarP(NewUint128Flag(&account.Id), "id", "i", "id")
+	cmd.Flags().Uint32VarP(&account.Ledger, "ledger", "l", 0, "ledger")
+	cmd.Flags().Uint16VarP(&account.Code, "code", "c", 0, "code")
 	cmd.Flags().BoolVar(
-		&params.DebitsMustNotExceedCredits,
+		&account.DebitsMustNotExceedCredits,
 		"debits-must-not-exceed-credits",
 		false,
 		"debits must not exceed credits",
 	)
 
 	cmd.Flags().BoolVar(
-		&params.CreditsMustNotExceedDebits,
+		&account.CreditsMustNotExceedDebits,
 		"credits-must-not-exceed-debits",
 		false,
 		"credits must not exceed debits",
