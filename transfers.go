@@ -1,6 +1,7 @@
 package turtlebunny
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -17,12 +18,17 @@ type Transfer struct {
 	UserData32      uint32
 	Ledger          uint32
 	Code            uint16
+	Imported        bool
 	Timestamp       uint64
 }
 
-func (c *Client) CreateTransfer(params Transfer) error {
-	if params.Timestamp == 0 {
-		params.Timestamp = unixNano()
+func (c *Client) CreateTransfer(transfer Transfer) error {
+	if !transfer.Imported {
+		if transfer.Timestamp == 0 {
+			transfer.Timestamp = unixNano()
+		} else {
+			return errors.New("timestamp_must_be_zero")
+		}
 	}
 	_, err := c.db.Exec(`
 		INSERT INTO transfers (
@@ -35,21 +41,23 @@ func (c *Client) CreateTransfer(params Transfer) error {
 			user_data_32,
 			ledger,
 			code,
+			imported,
 			timestamp
 		)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
-		params.Id.String(),
-		params.DebitAccountId.String(),
-		params.CreditAccountId.String(),
-		params.Amount.String(),
-		params.UserData128.String(),
-		params.UserData64,
-		params.UserData32,
-		params.Ledger,
-		params.Code,
-		params.Timestamp,
+		transfer.Id.String(),
+		transfer.DebitAccountId.String(),
+		transfer.CreditAccountId.String(),
+		transfer.Amount.String(),
+		transfer.UserData128.String(),
+		transfer.UserData64,
+		transfer.UserData32,
+		transfer.Ledger,
+		transfer.Code,
+		transfer.Imported,
+		transfer.Timestamp,
 	)
 
 	if err != nil {
@@ -77,6 +85,7 @@ func (c *Client) LookupTransfers(ids ...uint128.Uint128) ([]*Transfer, error) {
 			user_data_32,
 			ledger,
 			code,
+			imported,
 			timestamp
 		FROM transfers
 		WHERE id IN (%s)
@@ -102,6 +111,7 @@ func (c *Client) LookupTransfers(ids ...uint128.Uint128) ([]*Transfer, error) {
 			&transfer.UserData32,
 			&transfer.Ledger,
 			&transfer.Code,
+			&transfer.Imported,
 			&transfer.Timestamp,
 		)
 		if err != nil {

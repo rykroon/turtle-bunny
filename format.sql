@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS transfers (
     user_data_32 INTEGER NOT NULL CHECK (user_data_32 BETWEEN 0 AND 4294967295),
     ledger INTEGER NOT NULL CHECK (ledger BETWEEN 0 AND 4294967295),
     code INTEGER NOT NULL CHECK (code BETWEEN 0 AND 65535),
+    imported INTEGER NOT NULL CHECK (imported IN (0, 1)),
     timestamp TEXT NOT NULL UNIQUE CHECK (is_uint64(timestamp)),
     FOREIGN KEY (debit_account_id) REFERENCES accounts(id),
     FOREIGN KEY (credit_account_id) REFERENCES accounts(id)

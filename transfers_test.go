@@ -170,6 +170,53 @@ func TestCreateTransfers(t *testing.T) {
 			},
 			ExpectedError: "accounts_must_be_different",
 		},
+		{
+			Name: "Timestamp Must Be Zero",
+			Account1: Account{
+				Id:     uint128.From64(1),
+				Ledger: 1,
+				Code:   1,
+			},
+			Account2: Account{
+				Id:     uint128.From64(2),
+				Ledger: 1,
+				Code:   1,
+			},
+			Transfer: Transfer{
+				Id:              uint128.From64(1),
+				DebitAccountId:  uint128.From64(1),
+				CreditAccountId: uint128.From64(1),
+				Amount:          uint128.From64(100),
+				Ledger:          1,
+				Code:            1,
+				Timestamp:       1234567890,
+			},
+			ExpectedError: "timestamp_must_be_zero",
+		},
+		{
+			Name: "Timestamp Must Not Advance",
+			Account1: Account{
+				Id:     uint128.From64(1),
+				Ledger: 1,
+				Code:   1,
+			},
+			Account2: Account{
+				Id:     uint128.From64(2),
+				Ledger: 1,
+				Code:   1,
+			},
+			Transfer: Transfer{
+				Id:              uint128.From64(1),
+				DebitAccountId:  uint128.From64(1),
+				CreditAccountId: uint128.From64(2),
+				Amount:          uint128.From64(100),
+				Ledger:          1,
+				Code:            1,
+				Imported:        true,
+				Timestamp:       unixNano() + 5e9,
+			},
+			ExpectedError: "timestamp_must_not_advance",
+		},
 	}
 
 	for _, tc := range cases {
