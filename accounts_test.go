@@ -81,11 +81,23 @@ func TestCreateAccount(t *testing.T) {
 			ExpectedError: "flags_are_mutually_exclusive",
 		},
 		{
+			Name: "Timestamp Must Be Zero",
+			Account: Account{
+				Id:        uint128.From64(1),
+				Ledger:    1,
+				Code:      1,
+				Imported:  false,
+				Timestamp: 1234567890,
+			},
+			ExpectedError: "timestamp_must_be_zero",
+		},
+		{
 			Name: "Timestamp Must Not Advance",
 			Account: Account{
 				Id:        uint128.From64(1),
 				Ledger:    1,
 				Code:      1,
+				Imported:  true,
 				Timestamp: uint64(unixNano()) + 1e9,
 			},
 			ExpectedError: "timestamp_must_not_advance",
@@ -145,6 +157,7 @@ func TestTimestampMustNotRegress(t *testing.T) {
 		Id:        uint128.From64(2),
 		Ledger:    1,
 		Code:      1,
+		Imported:  true,
 		Timestamp: uint64(unixNano()) - 1e9,
 	}
 	err = client.CreateAccount(account2)

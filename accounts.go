@@ -1,6 +1,7 @@
 package turtlebunny
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -18,12 +19,19 @@ type Account struct {
 	Code                       uint16
 	DebitsMustNotExceedCredits bool
 	CreditsMustNotExceedDebits bool
+	Imported                   bool
 	Timestamp                  uint64
 }
 
-func (c *Client) CreateAccount(params Account) error {
-	if params.Timestamp == 0 {
-		params.Timestamp = unixNano()
+func (c *Client) CreateAccount(account Account) error {
+	if !account.Imported {
+		if account.Timestamp == 0 {
+			account.Timestamp = unixNano()
+		} else {
+			// this error check can only realistically be enforced
+			// in the application code and not in SQL.
+			return errors.New("timestamp_must_be_zero")
+		}
 	}
 	_, err := c.db.Exec(`
 		INSERT INTO accounts (
@@ -37,22 +45,24 @@ func (c *Client) CreateAccount(params Account) error {
 			code,
 			debits_must_not_exceed_credits,
 			credits_must_not_exceed_debits,
+			imported,
 			timestamp
 		)
 		VALUES
-		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
-		params.Id.String(),
-		params.DebitsPosted.String(),
-		params.CreditsPosted.String(),
-		params.UserData128.String(),
-		params.UserData64,
-		params.UserData32,
-		params.Ledger,
-		params.Code,
-		params.DebitsMustNotExceedCredits,
-		params.CreditsMustNotExceedDebits,
-		params.Timestamp,
+		account.Id.String(),
+		account.DebitsPosted.String(),
+		account.CreditsPosted.String(),
+		account.UserData128.String(),
+		account.UserData64,
+		account.UserData32,
+		account.Ledger,
+		account.Code,
+		account.DebitsMustNotExceedCredits,
+		account.CreditsMustNotExceedDebits,
+		account.Imported,
+		account.Timestamp,
 	)
 
 	if err != nil {

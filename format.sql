@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     code INTEGER NOT NULL CHECK (code BETWEEN 0 AND 65535),
     debits_must_not_exceed_credits INTEGER NOT NULL CHECK (debits_must_not_exceed_credits IN (0,1)),
     credits_must_not_exceed_debits INTEGER NOT NULL CHECK (credits_must_not_exceed_debits IN (0,1)),
+    imported INTEGER NOT NULL CHECK (imported IN (0,1)),
     timestamp TEXT NOT NULL UNIQUE CHECK (is_uint64(timestamp))
 ) STRICT, WITHOUT ROWID;
 
@@ -33,7 +34,7 @@ BEGIN
             THEN RAISE(ABORT, "flags_are_mutually_exclusive")
         WHEN uint_cmp(NEW.timestamp, unix_nano()) = 1
             THEN RAISE(ABORT, "timestamp_must_not_advance")
-        WHEN uint_cmp(NEW.timestamp, COALESCE((SELECT timestamp FROM last_account_timestamp), 0)) = -1
+        WHEN uint_cmp(NEW.timestamp, COALESCE((SELECT ts FROM last_account_timestamp), 0)) = -1
             THEN RAISE(ABORT, "timestamp_must_not_regress")
     END;
 END;
@@ -51,6 +52,7 @@ BEGIN
             (OLD.code != NEW.code) OR
             (OLD.debits_must_not_exceed_credits != NEW.debits_must_not_exceed_credits) OR
             (OLD.credits_must_not_exceed_debits != NEW.credits_must_not_exceed_debits) OR
+            (OLD.imported != NEW.imported) OR
             (OLD.timestamp != NEW.timestamp)
         )
             THEN RAISE(ABORT, "account_cannot_be_modified")
@@ -128,7 +130,7 @@ BEGIN
         WHEN uint_cmp(NEW.timestamp, unix_nano()) = 1
             THEN RAISE(ABORT, "timestamp_must_not_advance")
 
-        WHEN uint_cmp(NEW.timestamp, COALESCE((SELECT timestamp FROM last_transfer_timestamp), 0)) = -1
+        WHEN uint_cmp(NEW.timestamp, COALESCE((SELECT ts FROM last_transfer_timestamp), 0)) = -1
             THEN RAISE(ABORT, "timestamp_must_not_regress")
     END;
 END;
@@ -156,7 +158,7 @@ BEGIN
 END;
 
 CREATE VIEW IF NOT EXISTS last_account_timestamp AS
-    SELECT COALESCE(timestamp, 0) AS timestamp from accounts ORDER BY timestamp DESC LIMIT 1;
+    SELECT COALESCE(timestamp, 0) AS ts from accounts ORDER BY timestamp DESC LIMIT 1;
 
 CREATE VIEW IF NOT EXISTS last_transfer_timestamp AS
-    SELECT COALESCE(timestamp, 0) AS timestamp from transfers ORDER BY timestamp DESC LIMIT 1;
+    SELECT COALESCE(timestamp, 0) AS ts from transfers ORDER BY timestamp DESC LIMIT 1;
