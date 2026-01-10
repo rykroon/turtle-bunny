@@ -91,6 +91,7 @@ func (c *Client) LookupAccounts(ids ...uint128.Uint128) ([]*Account, error) {
 			code,
 			debits_must_not_exceed_credits,
 			credits_must_not_exceed_debits,
+			imported,
 			timestamp
 		FROM accounts
 		WHERE id IN (%s)
@@ -116,6 +117,7 @@ func (c *Client) LookupAccounts(ids ...uint128.Uint128) ([]*Account, error) {
 			&account.Code,
 			&account.DebitsMustNotExceedCredits,
 			&account.CreditsMustNotExceedDebits,
+			&account.Imported,
 			&account.Timestamp,
 		)
 
