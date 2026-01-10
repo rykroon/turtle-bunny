@@ -1,6 +1,8 @@
 # turtle-bunny
 A Financial Transaction Database inspired by Tiger Beetle
 
+![alt text](turtle-bunny-logo.jpeg "Logo")
+
 ## Info
 Turtle Bunny uses a sqlite3 database alongside Golang.
 Turtle Bunny can be used as a cli or can be imported as a Go Package.
