@@ -6,7 +6,7 @@ import (
 	"lukechampine.com/uint128"
 )
 
-type transferCase struct {
+type createTransferTestCase struct {
 	Name          string
 	DbName        string
 	Account1      Account
@@ -16,7 +16,7 @@ type transferCase struct {
 }
 
 func TestCreateTransfers(t *testing.T) {
-	cases := []transferCase{
+	cases := []createTransferTestCase{
 		{
 			Name: "Transfer Id Must Not Be Zero",
 			Account1: Account{
@@ -434,4 +434,73 @@ func TestCreateTransfers(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTransferTimestampMustNotRegress(t *testing.T) {
+	client, err := NewClient(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+
+	err = client.Format()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	account1 := Account{
+		Id:     uint128.From64(1),
+		Ledger: 1,
+		Code:   1,
+	}
+	err = client.CreateAccount(account1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	account2 := Account{
+		Id:     uint128.From64(2),
+		Ledger: 1,
+		Code:   1,
+	}
+	err = client.CreateAccount(account2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t1 := Transfer{
+		Id:              uint128.From64(1),
+		DebitAccountId:  uint128.From64(1),
+		CreditAccountId: uint128.From64(2),
+		Amount:          uint128.From64(100),
+		Ledger:          1,
+		Code:            1,
+	}
+
+	err = client.CreateTransfer(t1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t2 := Transfer{
+		Id:              uint128.From64(1),
+		DebitAccountId:  uint128.From64(1),
+		CreditAccountId: uint128.From64(2),
+		Amount:          uint128.From64(100),
+		Ledger:          1,
+		Code:            1,
+		Imported:        true,
+		Timestamp:       uint64(unixNano()) - 1e9,
+	}
+
+	err = client.CreateTransfer(t2)
+
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if err.Error() != "timestamp_must_not_regress" {
+		t.Fatalf("expected %s, got %s", "timestamp_must_not_regress", err.Error())
+	}
+
 }

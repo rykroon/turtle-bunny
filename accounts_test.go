@@ -130,16 +130,16 @@ func TestCreateAccount(t *testing.T) {
 	}
 }
 
-func TestTimestampMustNotRegress(t *testing.T) {
+func TestAccountTimestampMustNotRegress(t *testing.T) {
 	client, err := NewClient(":memory:")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	defer client.Close()
 
 	err = client.Format()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	account1 := Account{
@@ -150,7 +150,7 @@ func TestTimestampMustNotRegress(t *testing.T) {
 	err = client.CreateAccount(account1)
 
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	account2 := Account{
@@ -167,7 +167,7 @@ func TestTimestampMustNotRegress(t *testing.T) {
 	}
 
 	if err.Error() != "timestamp_must_not_regress" {
-		t.Errorf("expected %s, got %s", "timestamp_must_not_regress", err.Error())
+		t.Fatalf("expected %s, got %s", "timestamp_must_not_regress", err.Error())
 	}
 
 }
